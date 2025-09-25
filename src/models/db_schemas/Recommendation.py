@@ -11,11 +11,9 @@ class Recommendation(BaseModel):
 
     content: str= Field(..., min_length=10, description="AI prompt to make a recommendation")
 
-    summary: str= Field(..., min_length=10, description="summary of Ai agent results")
-
-    result: str=Field(..., min_length=10, description="Recommendation results")
-
     createdAt: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+    result: dict = Field(..., description="Recomendation reults")
     
     user_id: ObjectId
 
