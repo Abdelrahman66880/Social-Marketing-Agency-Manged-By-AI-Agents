@@ -13,7 +13,7 @@ class BuisnessInfo(BaseModel):
 
     theme: List[str] = []
 
-    field: List[str] = []
+    field: str
 
     longTermGoals: List[str] = []
 
