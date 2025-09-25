@@ -1,6 +1,6 @@
 # user_model.py
 from .BaseModel import BaseModel
-from .db_schemas import User
+from .db_schemas.User import User
 from .enums.UserEnums import AccountStatus
 from .enums.DBEnums import DBEnums
 from bson.objectid import ObjectId
