@@ -9,7 +9,7 @@ class Analysis(BaseModel):
     analysisType: str
     createdAt: datetime
     
-    @validator('analysis_id')
+    @validator('id')
     def validate_post_id(cls, value):
         if not isinstance(value, ObjectId):
             raise ValueError("analysis_id must be a valid ObjectId")

@@ -27,7 +27,7 @@ class Post(BaseModel):
     comments: Optional[list[str]] = []
     updatedAt: datetime
     
-    @validator('post_id')
+    @validator('id')
     def validate_post_id(cls, value):
         if not isinstance(value, ObjectId):
             raise ValueError("post_id must be a valid ObjectId")
