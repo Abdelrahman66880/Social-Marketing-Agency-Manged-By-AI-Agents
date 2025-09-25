@@ -4,3 +4,4 @@ class AccountStatus(str, Enum):
     ACTIVE = "active"
     INACTIVE = "inactive"
     BANNED = "banned"
+

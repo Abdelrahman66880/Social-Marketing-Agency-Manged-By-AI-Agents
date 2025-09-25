@@ -19,7 +19,7 @@ class User(BaseModel):
     facebookPageId: Optional[str] = Field(None, description="Facebook Page ID linked via Meta Graph API")
 
     class Config:
-        arbitrary_types_allowed = True  # small typo fixed
+        arbitrary_types_allowed = True 
 
     # ---------------------------
     # Validators
