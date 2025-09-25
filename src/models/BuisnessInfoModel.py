@@ -1,9 +1,8 @@
 # business_info_model.py
-
 from typing import Optional, List, Any
 from bson import ObjectId
 from .BaseModel import BaseModel
-from .db_schemas import BuisnessInfo
+from .db_schemas.BuisnessInfo import BuisnessInfo
 from .enums.DBEnums import DBEnums
 
 
