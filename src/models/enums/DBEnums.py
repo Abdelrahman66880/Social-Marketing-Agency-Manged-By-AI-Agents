@@ -2,3 +2,5 @@ from enum import Enum
 
 class DBEnums(str, Enum):
     COLLECTION_USER_NAME= "USERS"
+    COLLECTION_POST_NAME= "POSTS"
+    COLLECTION_ANALYTICS_NAME= "ANALYTICS"
