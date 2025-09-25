@@ -66,14 +66,12 @@ class BusinessInfoModel(BaseModel):
 
     async def delete_by_user_id(self, user_id: str) -> dict:
         """Delete BusinessInfo for a given user_id (cascade delete)."""
-        result = await self.collection.delete_one({"user_id": ObjectId(user_id)})
+        result = await self.collection.delete_many({"user_id": ObjectId(user_id)})
         return {"deleted_count": result.deleted_count}
 
     # ---------------- Queries ---------------- #
 
-    async def list_business_info(
-        self, page_no: int = 1, page_size: int = 20
-    ) -> List[BuisnessInfo]:
+    async def list_business_info(self, page_no: int = 1, page_size: int = 20) -> List[BuisnessInfo]:
         """Paginated list of all BusinessInfo documents."""
         cursor = (
             self.collection.find()
