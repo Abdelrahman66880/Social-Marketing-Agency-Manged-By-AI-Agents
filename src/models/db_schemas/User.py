@@ -1,8 +1,8 @@
 from typing import Optional
-from pydantic import BaseModel, Field, EmailStr, field_validator
+from pydantic import BaseModel, Field, EmailStr, field_validator, validator, ConfigDict
 from bson import ObjectId
 from enum import Enum
-from ..enums.UserEnums import AccountStatus
+from src.models.enums.UserEnums import AccountStatus
 
 
 class User(BaseModel):
@@ -18,12 +18,18 @@ class User(BaseModel):
 
     facebookPageId: Optional[str] = Field(None, description="Facebook Page ID linked via Meta Graph API")
 
-    class Config:
-        arbitrary_types_allowed = True 
+    @field_validator('id', mode="after")
+    def validate_post_id(cls, value):
+        if not isinstance(value, ObjectId):
+            raise ValueError("post_id must be a valid ObjectId")
+        return value
+    
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
     # ---------------------------
     # Validators
     # ---------------------------
+    
 
     @field_validator("username", mode="after")
     @classmethod

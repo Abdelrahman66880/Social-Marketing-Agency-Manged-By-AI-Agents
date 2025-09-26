@@ -1,8 +1,8 @@
 from typing import Optional, List
-from pydantic import BaseModel, Field, ValidationError, model_validator
+from pydantic import BaseModel, Field, field_validator, model_validator, ConfigDict
 from bson import ObjectId
 from datetime import time
-from ..enums.ScheduleEnums import DayOfWeek
+from src.models.enums.ScheduleEnums import DayOfWeek
 from uuid import uuid4
 
 class ScheduledPost(BaseModel):
@@ -32,8 +32,13 @@ class Schedule(BaseModel):
     interaction_analysis_dates: List[interactionAnalysisDate] = Field(default_factory=list)
     user_id: ObjectId
 
-    class Config:
-        arbitrary_types_allowed = True
+    @field_validator('id', mode="after")
+    def validate_post_id(cls, value):
+        if not isinstance(value, ObjectId):
+            raise ValueError("post_id must be a valid ObjectId")
+        return value
+    
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
     @model_validator(mode="before")
     def no_duplicate_times(cls, values):

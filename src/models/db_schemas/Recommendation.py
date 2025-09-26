@@ -1,5 +1,5 @@
 from typing import Optional, List
-from pydantic import BaseModel, Field, ValidationError, model_validator
+from pydantic import BaseModel, Field, field_validator, ConfigDict
 from bson import ObjectId
 from datetime import datetime, timezone
 
@@ -17,8 +17,13 @@ class Recommendation(BaseModel):
     
     user_id: ObjectId
 
-    class Config:
-        arbitrary_types_allowed = True
+    @field_validator('id', mode="after")
+    def validate_post_id(cls, value):
+        if not isinstance(value, ObjectId):
+            raise ValueError("post_id must be a valid ObjectId")
+        return value
+    
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
 
 
