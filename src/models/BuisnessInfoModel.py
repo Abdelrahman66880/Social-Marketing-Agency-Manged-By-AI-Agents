@@ -2,9 +2,9 @@
 
 from typing import Optional, List, Any
 from bson import ObjectId
-from .BaseModel import BaseModel
-from .db_schemas import BuisnessInfo
-from .enums.DBEnums import DBEnums
+from src.models.BaseModel import BaseModel
+from src.models.db_schemas import BuisnessInfo
+from src.models.enums.DBEnums import DBEnums
 
 
 class BusinessInfoModel(BaseModel):

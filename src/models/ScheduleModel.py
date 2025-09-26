@@ -2,9 +2,9 @@ from typing import List, Optional
 from bson import ObjectId
 from uuid import uuid4
 from datetime import time
-from .BaseModel import BaseModel
-from .db_schemas import Schedule, ScheduledPost, ScheduledCompetitorAnalysis, Date
-from .enums.DBEnums import DBEnums
+from src.models.BaseModel import BaseModel
+from src.models.db_schemas.Schedule import Schedule, ScheduledPost, ScheduledCompetitorAnalysis, interactionAnalysisDate
+from src.models.enums.DBEnums import DBEnums
 
 
 class ScheduleModel(BaseModel):
@@ -106,7 +106,7 @@ class ScheduleModel(BaseModel):
         )
         return {"matched_count": result.matched_count, "modified_count": result.modified_count}
 
-    async def add_interaction_date_by_user_id(self, user_id: str, date: Date) -> dict:
+    async def add_interaction_date_by_user_id(self, user_id: str, date: interactionAnalysisDate) -> dict:
         date.id = str(uuid4())
         await self._check_conflict(user_id, "interaction_analysis_dates", date.day_of_week, date.time_of_day)
         result = await self.collection.update_one(

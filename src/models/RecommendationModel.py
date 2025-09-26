@@ -2,10 +2,9 @@ from bson import ObjectId
 from motor.motor_asyncio import AsyncIOMotorClient
 from pymongo import DESCENDING
 from typing import List, Optional
-from db_schemas.Recommendation import Recommendation
-import BaseModel
-from .enums import DBEnums
-
+from src.models.db_schemas.Recommendation import Recommendation
+from src.models.enums import DBEnums
+from src.models.BaseModel import BaseModel
 
 
 class RecommendationModel(BaseModel):
