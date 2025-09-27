@@ -35,7 +35,7 @@ class Schedule(BaseModel):
     @field_validator('id', mode="after")
     def validate_post_id(cls, value):
         if not isinstance(value, ObjectId):
-            raise ValueError("post_id must be a valid ObjectId")
+            raise ValueError("Schedule_id must be a valid ObjectId")
         return value
     
     model_config = ConfigDict(arbitrary_types_allowed=True)
