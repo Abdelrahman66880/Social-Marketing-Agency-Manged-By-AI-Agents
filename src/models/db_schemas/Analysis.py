@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, validator, ConfigDict
+from pydantic import BaseModel, Field, field_validator, ConfigDict
 from typing import Optional
 from bson.objectid import ObjectId
 from datetime import datetime
@@ -9,7 +9,7 @@ class Analysis(BaseModel):
     analysisType: str
     createdAt: datetime
     
-    @validator('id')
+    @field_validator('id', mode="after")
     def validate_post_id(cls, value):
         if not isinstance(value, ObjectId):
             raise ValueError("analysis_id must be a valid ObjectId")
