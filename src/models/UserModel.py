@@ -176,13 +176,14 @@ class UserModel(BaseModel):
             await notification_model.delete_notifications_by_user_id(user_id)
             
     async def delete_many_by_filter(self, filter: dict) -> dict:
+
         users = await self.collection.find(filter, {"_id": 1}).to_list(None)
         user_ids = [u["_id"] for u in users]
 
         if not user_ids:
             return {"deleted_count": 0, "related_deleted": {}}
 
-       result = await self.collection.delete_many(filter)
+        result = await self.collection.delete_many(filter)
 
         business_info_model = BusinessInfoModel(self.db_client)
         schedule_model = ScheduleModel(self.db_client)
