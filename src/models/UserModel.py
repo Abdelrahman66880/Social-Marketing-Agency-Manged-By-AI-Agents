@@ -5,7 +5,10 @@ from .enums.UserEnums import AccountStatus
 from .enums.DBEnums import DBEnums
 from bson.objectid import ObjectId
 from typing import List, Optional
-from .BuisnessInfoModel import BusinessInfoModel  # import your BusinessInfo model
+from .BuisnessInfoModel import BusinessInfoModel
+from .ScheduleModel import ScheduleModel
+from .RecommendationModel import RecommendationModel
+from .NotificationModel import NotificationModel
 
 
 class UserModel(BaseModel):
@@ -71,6 +74,7 @@ class UserModel(BaseModel):
         result = await self.collection.insert_one(user.dict(by_alias=True, exclude_unset=True))
         user.id = result.inserted_id
         return user
+
 
     async def get_user_by_id(self, user_id: str) -> Optional[User]:
         """
@@ -160,20 +164,54 @@ class UserModel(BaseModel):
             dict: Contains 'deleted_count' indicating the number of deleted documents.
         """
         result = await self.collection.delete_one({"_id": ObjectId(user_id)})
-        return {"deleted_count": result.deleted_count}
+        if result.deleted_count:
+            business_model = await BusinessInfoModel.create_instance(self.db_client)
+            schedule_model = await ScheduleModel.create_instance(self.db_client)
+            recommendation_model = await RecommendationModel.create_instance(self.db_client)
+            notification_model = await NotificationModel.create_instance(self.db_client)
 
+            await business_model.delete_by_user_id(user_id)
+            await schedule_model.delete_by_user_id(user_id)
+            await recommendation_model.delete_recommendations_by_user_id(user_id)
+            await notification_model.delete_notifications_by_user_id(user_id)
+            
     async def delete_many_by_filter(self, filter: dict) -> dict:
-        """
-        Delete multiple user documents matching a filter.
+        users = await self.collection.find(filter, {"_id": 1}).to_list(None)
+        user_ids = [u["_id"] for u in users]
 
-        Args:
-            filter (dict): The filter criteria for deletion.
+        if not user_ids:
+            return {"deleted_count": 0, "related_deleted": {}}
 
-        Returns:
-            dict: Contains 'deleted_count' indicating the number of deleted documents.
-        """
-        result = await self.collection.delete_many(filter)
-        return {"deleted_count": result.deleted_count}
+       result = await self.collection.delete_many(filter)
+
+        business_info_model = BusinessInfoModel(self.db_client)
+        schedule_model = ScheduleModel(self.db_client)
+        recommendation_model = RecommendationModel(self.db_client)
+        notification_model = NotificationModel(self.db_client)
+
+        related_deleted = {}
+
+        related_deleted["business_infos"] = (
+            await business_info_model.delete_many_by_filter({"user_id": {"$in": user_ids}})
+        )["deleted_count"]
+
+        related_deleted["schedules"] = (
+            await schedule_model.delete_many_by_filter({"user_id": {"$in": user_ids}})
+        )["deleted_count"]
+
+        related_deleted["recommendations"] = (
+            await recommendation_model.delete_many_by_filter({"user_id": {"$in": user_ids}})
+        )["deleted_count"]
+
+        related_deleted["notifications"] = (
+            await notification_model.delete_many_by_filter({"user_id": {"$in": user_ids}})
+        )["deleted_count"]
+
+        return {
+            "deleted_count": result.deleted_count,
+            "related_deleted": related_deleted
+        }
+
 
     # ---------------- Utility ---------------- #
 

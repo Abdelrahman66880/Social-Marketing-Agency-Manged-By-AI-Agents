@@ -1,9 +1,10 @@
 # business_info_model.py
 from typing import Optional, List, Any
 from bson import ObjectId
-from .BaseModel import BaseModel
-from .db_schemas.BuisnessInfo import BuisnessInfo
-from .enums.DBEnums import DBEnums
+from src.models.BaseModel import BaseModel
+from src.models.db_schemas import BuisnessInfo
+from src.models.enums.DBEnums import DBEnums
+
 
 
 class BusinessInfoModel(BaseModel):
@@ -110,19 +111,12 @@ class BusinessInfoModel(BaseModel):
         }
 
     async def delete_by_user_id(self, user_id: str) -> dict:
-        """
-        Delete a BusinessInfo document for a given user_id (cascade delete).
-
-        Args:
-            user_id (str): The string representation of the user's ObjectId.
-
-        Returns:
-            dict: Contains 'deleted_count' indicating the number of deleted documents.
-        """
-        result = await self.collection.delete_one({"user_id": ObjectId(user_id)})
+        """Delete BusinessInfo for a given user_id (cascade delete)."""
+        result = await self.collection.delete_many({"user_id": ObjectId(user_id)})
         return {"deleted_count": result.deleted_count}
 
     # ---------------- Queries ---------------- #
+
 
     async def list_business_info(
         self, page_no: int = 1, page_size: int = 20

@@ -1,10 +1,11 @@
 from typing import Optional, List, Union
-from pydantic import BaseModel, Field
+from pydantic import Field, ConfigDict, field_validator
 from bson import ObjectId
+from pydantic import BaseModel
 
 
 class BusinessResource(BaseModel):
-    type: str
+    name: str
     description: Optional[str] = None
 
 
@@ -13,7 +14,7 @@ class BuisnessInfo(BaseModel):
 
     theme: List[str] = []
 
-    field: List[str] = []
+    field: str
 
     longTermGoals: List[str] = []
 
@@ -38,9 +39,13 @@ class BuisnessInfo(BaseModel):
         description="A clear and representative description of the business (50-1000 characters)."
     )
 
-    class Config:
-        arbitrary_types_allowed = True
-
+    @field_validator('id', mode="after")
+    def validate_post_id(cls, value):
+        if not isinstance(value, ObjectId):
+            raise ValueError("post_id must be a valid ObjectId")
+        return value
+    
+    model_config = ConfigDict(arbitrary_types_allowed=True)
     @classmethod
     def get_indexes(cls):
         return [
