@@ -6,9 +6,12 @@ BASE_DIR = os.path.dirname(os.path.dirname(__file__))  # points to src/
 class Settings(BaseSettings):
     APP_NAME: str
     APP_VERSION: str
-    MONGODB_URL: str
-    MONGODB_DATABASE: str
-    MONGODB_DATABASE: str
+    # MONGODB_URL: str
+    # MONGODB_DATABASE: str
+    # MONGODB_DATABASE: str
+    
+    PAGE_ACCESS_TOKEN: str
+    PAGE_ID: str
 
     class Config:
         env_file = os.path.join(BASE_DIR, ".env")  # src/.env
