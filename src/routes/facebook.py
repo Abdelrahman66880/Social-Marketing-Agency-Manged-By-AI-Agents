@@ -1,8 +1,8 @@
 # facebook_routes.py
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import JSONResponse
-from models.enums.ResponseSignal import ResponseSignal
-from models.db_schemas import Post
+from ..models.enums.ResponseSignal import ResponseSignal
+from ..models.db_schemas.Post import Post
 import requests
 import json
 import os
@@ -55,7 +55,7 @@ def get_facebook_page_access_token(user_access_token: str):
 # ==========================================================================
 
 @facebook_router.post("/upload_post")
-def upload_post(page_id: str):
+def upload_post(page_id: str, page_Access_Token: str):
     """
     Upload a new post to a Facebook page.
 
@@ -67,44 +67,16 @@ def upload_post(page_id: str):
     - Confirmation of the upload (e.g., post ID, success status).
     """
     
-    user_access_token = os.getenv("PAGE_ACCESS_TOKEN")
-    if user_access_token is None:
-        return JSONResponse(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            content={
-                "signal": ResponseSignal.ERROR_ACCESS_TOKEN_NOT_FOUND.value
-            }
-        )
-
-    response_token = get_facebook_page_access_token(user_access_token=user_access_token)
-    if response_token is None:
-        return JSONResponse(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            content={
-                "signal": ResponseSignal.ERROR_RESPONSE_TOKEN_NOT_FOUND.value
-            }
-        )
-    
     url = f"https://graph.facebook.com/v23.0/{page_id}/feed"
     payload = {
         "message": "Hello from AI Agent again 🚀",
-        "access_token": response_token
+        "access_token": page_Access_Token
     }
     
     response = requests.post(url, data=payload)
     result = response.json()
-    if response.status_code != 200 or "id" not in result:
-        return JSONResponse(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            content={
-                "signal": ResponseSignal.ERROR_POST_UPLOAD_FAILED.value
-            }
-        )
-    return JSONResponse(
-        content={
-            "signal": ResponseSignal.SUCCESS_POST_UPLOAD.value
-        }
-    )
+    
+    return result
 
     
 

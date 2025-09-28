@@ -2,7 +2,7 @@ from typing import Optional
 from pydantic import BaseModel, Field, EmailStr, field_validator, validator, ConfigDict
 from bson import ObjectId
 from enum import Enum
-from models.enums.UserEnums import AccountStatus
+from ...models.enums.UserEnums import AccountStatus
 
 
 class User(BaseModel):

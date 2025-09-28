@@ -1,6 +1,6 @@
 from fastapi import FastAPI
-from routes import base, facebook
-from helpers.config import get_Settings
+from .routes import base, facebook
+from .helpers.config import get_Settings
 
 app = FastAPI(title="Social Marketing API")
 

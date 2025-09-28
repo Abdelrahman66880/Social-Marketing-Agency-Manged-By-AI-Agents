@@ -1,6 +1,6 @@
 # The base route for the application
 from fastapi import FastAPI, APIRouter, Depends
-from helpers.config import get_Settings, Settings
+from ..helpers.config import get_Settings, Settings
 import os
 
 base_router = APIRouter(
