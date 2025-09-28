@@ -64,7 +64,7 @@ def upload_post(page_id: str, page_Access_Token: str):
     - post (PostSchema): Pydantic model containing post details.
 
     Output:
-    - Confirmation of the upload (e.g., post ID, success status).
+    - Reture dict contain the postid <PAGEID_POSTID>.
     """
     
     url = f"https://graph.facebook.com/v23.0/{page_id}/feed"
@@ -75,7 +75,6 @@ def upload_post(page_id: str, page_Access_Token: str):
     
     response = requests.post(url, data=payload)
     result = response.json()
-    
     return result
 
     
