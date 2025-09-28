@@ -2,7 +2,7 @@ from typing import Optional, List
 from pydantic import BaseModel, Field, field_validator, model_validator, ConfigDict
 from bson import ObjectId
 from datetime import time
-from src.models.enums.ScheduleEnums import DayOfWeek
+from models.enums.ScheduleEnums import DayOfWeek
 from uuid import uuid4
 
 class ScheduledPost(BaseModel):
