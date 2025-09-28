@@ -1,0 +1,46 @@
+# src/schemas/facebook.py
+from pydantic import BaseModel, Field
+from typing import Optional, Literal, Dict
+
+# =====================
+# REQUEST MODELS
+# =====================
+
+class FacebookReplyRequest(BaseModel):
+    recipient: Dict[str, str] = Field(..., description="PSID (Page-scoped user ID)")
+    message: Optional[Dict[str, str]] = Field(None, description="Text of the message (UTF-8, <2000 chars)")
+    messaging_type: Literal["RESPONSE", "UPDATE", "MESSAGE_TAG"] = "RESPONSE"
+    notification_type: Optional[Literal["NO_PUSH", "REGULAR", "SILENT_PUSH"]] = "REGULAR"
+    tag: Optional[
+        Literal[
+            "ACCOUNT_UPDATE",
+            "CONFIRMED_EVENT_UPDATE",
+            "CUSTOMER_FEEDBACK",
+            "HUMAN_AGENT",
+            "POST_PURCHASE_UPDATE",
+        ]
+    ] = None
+    reply_to: Optional[dict] = None  # {"mid": "<message_id>"}
+
+class ReplyMessageRequest(BaseModel):
+    psid: str = Field(..., description="Page-Scoped ID of the user to reply to")
+    reply_text: str = Field(..., description="Text content of the reply")
+    page_id: str = Field(..., description="Facebook Page ID")
+    facebookPageAccessToken: str = Field(..., description="Valid Page Access Token")
+    message_type: str = Field("RESPONSE", description="Messaging type (RESPONSE, UPDATE, MESSAGE_TAG)")
+
+
+class ReplyCommentRequest(BaseModel):
+    comment_id: str = Field(..., description="ID of the comment to reply to")
+    reply: str = Field(..., description="Reply text")
+    access_token: str = Field(..., description="Page Access Token with `pages_manage_engagement` permission")
+
+
+class FetchPageMessagesRequest(BaseModel):
+    page_id: str = Field(..., description="Facebook Page ID")
+    access_token: str = Field(..., description="Page Access Token with `pages_messaging` permission")
+
+
+class FetchPageFeedInteractionsRequest(BaseModel):
+    page_id: str = Field(..., description="Facebook Page ID")
+    access_token: str = Field(..., description="Page Access Token with `pages_manage_engagement` permission")
