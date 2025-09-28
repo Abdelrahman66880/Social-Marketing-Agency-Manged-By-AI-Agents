@@ -8,7 +8,11 @@ from src.models.schemas.facebookSchemas import (
     FetchPageFeedInteractionsRequest,
 )
 from typing import List
-router = APIRouter(prefix="/facebook", tags=["Facebook"])
+import requests
+facebook_router = APIRouter(
+    prefix="/facebook",
+    tags=["Facebook"]
+)
 
 """
 Note:
@@ -17,8 +21,8 @@ It is intended to clarify the objectives and expected functionality,
 not to represent the final implementation.
 """
 
-@router.post("/upload_post")
-def upload_post():
+@facebook_router.post("/upload_post")
+def upload_post(page_id: str, page_Access_Token: str):
     """
     Upload a new post to a Facebook page.
 
@@ -29,10 +33,20 @@ def upload_post():
     Output:
     - Confirmation of the upload (e.g., post ID, success status).
     """
-    return
+    
+    url = f"https://graph.facebook.com/v23.0/{page_id}/feed"
+    payload = {
+        "message": "Hello from AI Agent again 🚀",
+        "access_token": page_Access_Token
+    }
+    
+    response = requests.post(url, data=payload)
+    result = response.json()
+    
+    return result
 
 
-@router.post("/update_page_info")
+@facebook_router.post("/update_page_info")
 def update_page_info():
     """
     Update a Facebook page’s information.
@@ -47,7 +61,7 @@ def update_page_info():
     return
 
 
-@router.post("/reply_for_message", status_code=status.HTTP_201_CREATED)
+@facebook_router.post("/reply_for_message", status_code=status.HTTP_201_CREATED)
 async def reply_for_message(request: ReplyMessageRequest):
     """
     Send a reply message to a user via Messenger Send API.
@@ -61,7 +75,7 @@ async def reply_for_message(request: ReplyMessageRequest):
     )
     return result
 
-@router.post("/reply_for_comment")
+@facebook_router.post("/reply_for_comment")
 async def reply_for_comment(request: ReplyCommentRequest):
     """
     Reply to a specific comment on a Facebook post.
@@ -72,7 +86,7 @@ async def reply_for_comment(request: ReplyCommentRequest):
     return result
 
 
-@router.get("/search_for_pages")
+@facebook_router.get("/search_for_pages")
 def search_for_pages():
     """
     Search for competitor Facebook pages by keyword.
@@ -87,7 +101,7 @@ def search_for_pages():
     return
 
 
-@router.get("/get_chat_history")
+@facebook_router.get("/get_chat_history")
 def get_chat_history():
     """
     Retrieve the chat history of a specific conversation.
@@ -101,7 +115,7 @@ def get_chat_history():
     """
     return
 
-@router.post("/fetch_page_messages")
+@facebook_router.post("/fetch_page_messages")
 async def fetch_page_messages(request: FetchPageMessagesRequest):
     """
     Retrieve all messages from a page’s inbox.
@@ -111,7 +125,7 @@ async def fetch_page_messages(request: FetchPageMessagesRequest):
     )
     return result
     
-@router.post("/fetch_page_feed_interactions")
+@facebook_router.post("/fetch_page_feed_interactions")
 async def fetch_page_feed_interactions(request: FetchPageFeedInteractionsRequest):
     """
     Retrieve all interactions (comments, reactions) across all posts on a page.
