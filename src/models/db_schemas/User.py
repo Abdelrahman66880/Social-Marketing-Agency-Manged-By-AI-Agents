@@ -18,6 +18,9 @@ class User(BaseModel):
 
     facebookPageId: Optional[str] = Field(None, description="Facebook Page ID linked via Meta Graph API")
 
+    facebookPageAccessTokenHash: Optional[str] = Field(None, description="Page Access Token linked via Meta Graph API")
+
+
     @field_validator('id', mode="after")
     def validate_post_id(cls, value):
         if not isinstance(value, ObjectId):

@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     MONGODB_URL: str
     MONGODB_DATABASE: str
     MONGODB_DATABASE: str
+    GRAPH_API_VERSION: str
 
     class Config:
         env_file = os.path.join(BASE_DIR, ".env")  # src/.env

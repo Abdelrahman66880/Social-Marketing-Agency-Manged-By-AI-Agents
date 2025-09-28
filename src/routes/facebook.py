@@ -1,6 +1,13 @@
 # facebook_routes.py
-from fastapi import APIRouter, Depends, HTTPException, status
-
+from fastapi import APIRouter, Depends, HTTPException, status, Query
+from src.controllers.facebook import FacebookController
+from src.models.schemas.facebookSchemas import (
+    ReplyMessageRequest,
+    ReplyCommentRequest,
+    FetchPageMessagesRequest,
+    FetchPageFeedInteractionsRequest,
+)
+from typing import List
 router = APIRouter(prefix="/facebook", tags=["Facebook"])
 
 """
@@ -40,36 +47,29 @@ def update_page_info():
     return
 
 
-@router.post("/reply_for_message")
-def reply_for_message():
+@router.post("/reply_for_message", status_code=status.HTTP_201_CREATED)
+async def reply_for_message(request: ReplyMessageRequest):
     """
-    Reply to a specific chat message in a page’s inbox.
-
-    Input:
-    - page_id (str): ID of the Facebook page.
-    - chat_id (str): ID of the chat thread.
-    - reply (str): AI-generated reply message.
-
-    Output:
-    - Confirmation of the reply (e.g., message ID, status).
+    Send a reply message to a user via Messenger Send API.
     """
-    return
-
+    result = await FacebookController.reply_to_message(
+        request.psid,
+        request.reply_text,
+        request.page_id,
+        request.facebookPageAccessToken,
+        request.message_type,
+    )
+    return result
 
 @router.post("/reply_for_comment")
-def reply_for_comment():
+async def reply_for_comment(request: ReplyCommentRequest):
     """
-    Reply to a specific comment on a post.
-
-    Input:
-    - page_id (str): ID of the Facebook page.
-    - comment_id (str): ID of the comment to reply to.
-    - reply (str): Reply text, typically generated based on post rules and global page rules.
-
-    Output:
-    - Confirmation of the reply (e.g., reply ID, status).
+    Reply to a specific comment on a Facebook post.
     """
-    return
+    result = await FacebookController.reply_for_comment(
+        request.comment_id, request.reply, request.access_token
+    )
+    return result
 
 
 @router.get("/search_for_pages")
@@ -101,16 +101,22 @@ def get_chat_history():
     """
     return
 
-
-@router.get("/get_page_interactions")
-def get_page_interactions():
+@router.post("/fetch_page_messages")
+async def fetch_page_messages(request: FetchPageMessagesRequest):
     """
-    Retrieve all interactions (comments, likes, etc.) across all posts on a page.
-
-    Input:
-    - page_id (str): ID of the Facebook page.
-
-    Output:
-    - List of interactions with metadata (user, type, timestamp, etc.).
+    Retrieve all messages from a page’s inbox.
     """
-    return
+    result = await FacebookController.fetch_page_messages(
+        request.page_id, request.access_token
+    )
+    return result
+    
+@router.post("/fetch_page_feed_interactions")
+async def fetch_page_feed_interactions(request: FetchPageFeedInteractionsRequest):
+    """
+    Retrieve all interactions (comments, reactions) across all posts on a page.
+    """
+    result = await FacebookController.fetch_page_feed_interactions(
+        request.page_id, request.access_token
+    )
+    return result
