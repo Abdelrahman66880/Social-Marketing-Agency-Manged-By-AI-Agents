@@ -2,7 +2,7 @@ from typing import Optional
 from pydantic import BaseModel, Field, EmailStr, field_validator, validator, ConfigDict
 from bson import ObjectId
 from enum import Enum
-from ...models.enums.UserEnums import AccountStatus
+from src.models.enums.UserEnums import AccountStatus
 
 
 class User(BaseModel):
@@ -17,6 +17,9 @@ class User(BaseModel):
     email: EmailStr = Field(..., description="Unique user email")
 
     facebookPageId: Optional[str] = Field(None, description="Facebook Page ID linked via Meta Graph API")
+
+    facebookPageAccessTokenHash: Optional[str] = Field(None, description="Page Access Token linked via Meta Graph API")
+
 
     @field_validator('id', mode="after")
     def validate_post_id(cls, value):
@@ -70,4 +73,3 @@ class User(BaseModel):
             },
         ]
     
-
