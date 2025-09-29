@@ -88,9 +88,6 @@ def get_page_info(page_id: str, page_access_token: str):
         "access_token": page_access_token
     }
     response = requests.get(url, params=params).json()
-    print("============================================")
-    print(response)
-    print("=============================================")
     if "error" in response:
         raise HTTPException(status_code=400, detail=response["error"])
     return response
