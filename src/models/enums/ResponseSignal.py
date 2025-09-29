@@ -5,5 +5,7 @@ class ResponseSignal(Enum):
     ERROR_ACCESS_TOKEN_NOT_FOUND = "Access Token Not Found"
     ERROR_RESPONSE_TOKEN_NOT_FOUND = "Response Token Not Found"
     ERROR_POST_UPLOAD_FAILED = "post upload failed"
+    ERROR_POST_UPDATED_FAILED = "post updated failed"
     
     SUCCESS_POST_UPLOAD = "post upload successfully uploaded"
+    UPADTED_POST_SCCESS = "post update sucessfully"
