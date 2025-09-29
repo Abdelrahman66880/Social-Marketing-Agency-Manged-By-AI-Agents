@@ -13,3 +13,4 @@ python-jose==3.5.0
 langgraph
 langchain
 pydantic[email]
+pyngrok
