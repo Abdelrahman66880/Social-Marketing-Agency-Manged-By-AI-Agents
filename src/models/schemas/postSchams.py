@@ -11,9 +11,6 @@ class PageInfoSchema(BaseModel):
     website: Optional[str] = None
     category_list: Optional[List[dict]] = None
 
-class PageUpdateSchema(BaseModel):
-    about: Optional[str] = None
-    description: Optional[str] = None
-    email: Optional[EmailStr] = None
-    website: Optional[str] = None
-    category: Optional[List[str]] = None 
+class PostUpdateSchema(BaseModel):
+    message: Optional[str] = None
+    link: Optional[str] = None
