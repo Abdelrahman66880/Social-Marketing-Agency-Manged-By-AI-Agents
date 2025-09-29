@@ -3,10 +3,11 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import JSONResponse
 from ..models.enums.ResponseSignal import ResponseSignal
 from ..models.db_schemas.Post import Post
-from ..models.schemas.postSchams import PageInfoSchema, PageUpdateSchema
+from ..models.schemas.postSchams import PageInfoSchema, PostUpdateSchema
 import requests
 import json
 import os
+from ..helpers.config import get_Settings
 
 facebook_router = APIRouter(
     prefix="/facebook", 
@@ -79,7 +80,6 @@ def upload_post(page_id: str, page_Access_Token: str):
     return result
 
 
-page_info = ""
 @facebook_router.get("/page_info", response_model=PageInfoSchema)
 def get_page_info(page_id: str, page_access_token: str):
     url = f"https://graph.facebook.com/v23.0/{page_id}"
@@ -92,20 +92,35 @@ def get_page_info(page_id: str, page_access_token: str):
         raise HTTPException(status_code=400, detail=response["error"])
     return response
 
-
-@facebook_router.post("/update_page_info")
-async def update_page_info():
+@facebook_router.post("/update_post")
+def update_post(post_id: str, page_access_token: str, update_data: PostUpdateSchema):
     """
-    Update a Facebook page’s information.
+    Update an existing post on a Facebook page.
 
     Input:
-    - page_id (str): ID of the Facebook page.
-    - update_info (PageUpdateSchema): Fields to update (e.g., email, about, caption).
+    - post_id (str): ID of the post to update.
+    - page_access_token (str): Page access token with correct permissions.
+    - update_data (PostUpdateSchema): Fields to update (e.g., message, link).
 
     Output:
-    - Confirmation of the update with updated fields.
+    - Confirmation of the update.
     """
-    return
+    url = f"https://graph.facebook.com/v23.0/{post_id}"
+    payload = update_data.dict(exclude_unset=True)
+    payload["access_token"] = page_access_token
+
+    response = requests.post(url, data=payload)
+    result = response.json()
+
+    if response.status_code != 200 or not result.get("success"):
+        raise HTTPException(status_code=response.status_code, detail=result)
+
+    return {
+        "success": True,
+        "updated_fields": update_data.dict(exclude_unset=True)
+    }
+
+
 
 
 @facebook_router.post("/reply_for_message")
