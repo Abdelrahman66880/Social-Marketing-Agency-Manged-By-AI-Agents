@@ -3,6 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import JSONResponse
 from ..models.enums.ResponseSignal import ResponseSignal
 from ..models.db_schemas.Post import Post
+from ..models.schemas.postSchams import PageInfoSchema, PageUpdateSchema
 import requests
 import json
 import os
@@ -77,11 +78,26 @@ def upload_post(page_id: str, page_Access_Token: str):
     result = response.json()
     return result
 
-    
+
+page_info = ""
+@facebook_router.get("/page_info", response_model=PageInfoSchema)
+def get_page_info(page_id: str, page_access_token: str):
+    url = f"https://graph.facebook.com/v23.0/{page_id}"
+    params = {
+        "fields": "id,name,about,description,category,category_list,website",
+        "access_token": page_access_token
+    }
+    response = requests.get(url, params=params).json()
+    print("============================================")
+    print(response)
+    print("=============================================")
+    if "error" in response:
+        raise HTTPException(status_code=400, detail=response["error"])
+    return response
 
 
 @facebook_router.post("/update_page_info")
-def update_page_info():
+async def update_page_info():
     """
     Update a Facebook page’s information.
 
