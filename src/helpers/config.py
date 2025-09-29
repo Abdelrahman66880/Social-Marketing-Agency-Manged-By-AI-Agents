@@ -9,7 +9,7 @@ class Settings(BaseSettings):
     MONGODB_URL: str
     MONGODB_DATABASE: str
     MONGODB_DATABASE: str
-    
+    GRAPH_API_VERSION: str
     PAGE_ACCESS_TOKEN: str
     PAGE_ID: str
 
@@ -19,5 +19,3 @@ class Settings(BaseSettings):
 def get_Settings():
     return Settings()
 
-
-#
