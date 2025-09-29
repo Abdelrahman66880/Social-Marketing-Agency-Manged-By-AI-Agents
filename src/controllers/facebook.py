@@ -1,7 +1,4 @@
 #facebook controller
-
-# src/controllers/facebook_controller.py
-
 from typing import List, Dict
 import httpx
 from fastapi import HTTPException
