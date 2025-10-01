@@ -2,7 +2,7 @@ from pydantic import BaseModel, Field, field_validator, ConfigDict
 from typing import Optional
 from bson.objectid import ObjectId
 from datetime import datetime
-
+from ..enums.UserEnums import PostStatus
 class Post(BaseModel):
     """Schema for a Post document in the database."""
     id : Optional[ObjectId] = Field(None, alias="_id")
@@ -14,18 +14,20 @@ class Post(BaseModel):
     content: str = Field(
         ...,
         min_length=100,
-        max_length=1000,
-        description="The main content of the post (100-1000 characters)."
+        description="The main content of the post."
     )
     updatedcontent: Optional[str] = Field(
         None,
         min_length=100,
-        max_length=1000,
-        description="The updated content of the post (100-1000 characters)."
+        description="The updated content of the post."
     )
-    
-    comments: Optional[list[str]] = []
     updatedAt: datetime
+
+    comments: Optional[list[str]] = []
+    status: PostStatus = Field(
+        default=PostStatus.DRAFT,
+        description="The status of the post, one of: DRAFT, ACCEPTED, or REJECTED."
+    )
     
     @field_validator('id', mode="after")
     def validate_post_id(cls, value):

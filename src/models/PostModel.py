@@ -51,7 +51,6 @@ class PostModel(BaseModel):
                     index["key"],
                     name=index["name"],
                     unique=index["unique"],
-                    sparse=index.get("sparse", False)
                 )
     
     async def create_post(self, post: Post) -> Post:
