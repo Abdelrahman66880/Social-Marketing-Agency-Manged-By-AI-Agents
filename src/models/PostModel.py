@@ -2,6 +2,7 @@
 from .BaseModel import BaseModel
 from .db_schemas.Post import Post
 from .enums.DBEnums import DBEnums
+from .enums.UserEnums import PostStatus
 from bson.objectid import ObjectId
 from typing import List, Optional
 from datetime import datetime
@@ -64,7 +65,7 @@ class PostModel(BaseModel):
             Post: The inserted Post object with its MongoDB ID set.
         """
         result = await self.collection.insert_one(post.dict(by_alias=True, exclude_unset=True))
-        post.id = result.id
+        post.id = result.inserted_id
         return post
     
     async def get_post_by_id(self, post_id: str) -> Optional[Post]:
@@ -78,25 +79,25 @@ class PostModel(BaseModel):
             Optional[Post]: The Post object if found, otherwise None.
         """
         result = await self.collection.find_one({
-            "id": ObjectId(post_id)
+            "_id": ObjectId(post_id)
         })
         return Post(**result) if result else None
     
     
-    async def update_post_by_id(self, post_id: str, new_post_content: str) -> Optional[str]:
+    async def update_post_by_id(self, post_id: str, new_post_content: str, new_title: str) -> Post:
         """
-        Update the content of a post by its unique ID and set the updated timestamp.
+        Update the content of a post by its unique ID.
 
         Args:
             post_id (str): The string representation of the post's ObjectId.
             new_post_content (str): The new content to update in the post.
 
         Returns:
-            Optional[str]: The updated Post object if the update was successful, otherwise None.
+            The updated Post object if the update was successful, otherwise None.
         """
         update_data = {
-            "updated_content": new_post_content,
-            "updatedAt": datetime.utcnow(),
+            "content": new_post_content,
+            "title": new_title,
         }
         result = await self.collection.update_one(
             {"_id": ObjectId(post_id)},
@@ -139,3 +140,43 @@ class PostModel(BaseModel):
             posts.append(Post(**doc))
         return posts
 
+    async def accept_draft_by_id(self, post_id: str) -> bool:
+            """
+            Change the status of the draft to ACCEPTED.
+
+            Args:
+                post_id (str): The string representation of the post's ObjectId.
+
+            Returns:
+                bool: true if found false if not found
+            """
+            result = await self.collection.update_one(
+                {"_id": ObjectId(post_id), "status": PostStatus.DRAFT},  # only update if it's a draft
+                {"$set": {"status": PostStatus.ACCEPTED}}
+            )
+
+            if result.modified_count > 0:
+                # fetch the updated post
+                return True
+            return False
+    
+
+    async def reject_draft_by_id(self, post_id: str) -> bool:
+            """
+            Change the status of the draft to REJECTED.
+
+            Args:
+                post_id (str): The string representation of the post's ObjectId.
+
+            Returns:
+                bool: true if found false if not found
+            """
+            result = await self.collection.update_one(
+                {"_id": ObjectId(post_id), "status": PostStatus.DRAFT},  # only update if it's a draft
+                {"$set": {"status": PostStatus.REJECTED}}
+            )
+
+            if result.modified_count > 0:
+                # fetch the updated post
+                return True
+            return False
