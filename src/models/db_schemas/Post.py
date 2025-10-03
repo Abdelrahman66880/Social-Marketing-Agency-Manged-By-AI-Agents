@@ -6,23 +6,21 @@ from ..enums.UserEnums import PostStatus
 class Post(BaseModel):
     """Schema for a Post document in the database."""
     id : Optional[ObjectId] = Field(None, alias="_id")
-    isAccepted: bool = False
-    userRate: float
+    userFeedback: float = Field(
+        default=0.0,
+        ge=0.0,
+        le=5.0,
+        description="User feedback rating (0.0 to 5.0) on the AI agent's response."
+    )
     createdAt: datetime = Field(default_factory=datetime.utcnow)
-    title: str
-    category: str
+    
+    title: str = Field(..., min_length=3, max_length=100)
+
     content: str = Field(
         ...,
         min_length=100,
         description="The main content of the post."
     )
-    updatedcontent: Optional[str] = Field(
-        None,
-        min_length=100,
-        description="The updated content of the post."
-    )
-    updatedAt: datetime
-
     comments: Optional[list[str]] = []
     status: PostStatus = Field(
         default=PostStatus.DRAFT,
