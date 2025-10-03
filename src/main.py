@@ -16,5 +16,5 @@ async def shutdown_db_client():
     app.mongo_conn.close()
 
 app.include_router(facebook.facebook_router)
-app.include_router(drafts.content_router)
+app.include_router(drafts.draft_router)
 app.include_router(webhook.webhook_router)
