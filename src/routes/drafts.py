@@ -5,7 +5,7 @@ from datetime import datetime
 from src.models.db_schemas.Post import Post
 from src.models.PostModel import PostModel
 from src.models.enums.UserEnums import PostStatus
-from src.models.schemas.ContnetSChemas import (
+from models.schemas.DraftSChemas import (
     PostResponse,
     CreatePostRequest,
     EditPostRequest,
