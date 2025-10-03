@@ -2,7 +2,7 @@
 from .BaseModel import BaseModel
 from .db_schemas.Post import Post
 from .enums.DBEnums import DBEnums
-from .enums.UserEnums import PostStatus
+from .enums.PostEnums import PostStatus
 from bson.objectid import ObjectId
 from typing import List, Optional
 from datetime import datetime
@@ -180,3 +180,83 @@ class PostModel(BaseModel):
                 # fetch the updated post
                 return True
             return False
+    async def list_posts_by_user_id(self, user_id: ObjectId, limit: int = 10, skip: int = 0) -> List[Post]:
+        """
+        Retrieve all posts created by a specific user with pagination support.
+
+        Args:
+            user_id (ObjectId): The ObjectId of the user whose posts are to be retrieved.
+            limit (int, optional): Maximum number of posts to return. Defaults to 10.
+            skip (int, optional): Number of posts to skip. Defaults to 0.
+
+        Returns:
+            List[Post]: A list of Post objects created by the given user.
+        """
+        cursor = self.collection.find({"user_id": ObjectId(user_id)}).skip(skip).limit(limit)
+        posts = []
+        async for doc in cursor:
+            posts.append(Post(**doc))
+        return posts
+
+    async def list_rejected_posts_by_user_id(self, user_id: ObjectId, limit: int = 10, skip: int = 0) -> List[Post]:
+        """
+        Retrieve all REJECTED posts created by a specific user with pagination support.
+
+        Args:
+            user_id (ObjectId): The ObjectId of the user whose rejected posts are to be retrieved.
+            limit (int, optional): Maximum number of posts to return. Defaults to 10.
+            skip (int, optional): Number of posts to skip. Defaults to 0.
+
+        Returns:
+            List[Post]: A list of Post objects with status REJECTED created by the given user.
+        """
+        cursor = self.collection.find({
+            "user_id": ObjectId(user_id),
+            "status": PostStatus.REJECTED
+        }).skip(skip).limit(limit)
+        posts = []
+        async for doc in cursor:
+            posts.append(Post(**doc))
+        return posts
+
+    async def list_accepted_posts_by_user_id(self, user_id: ObjectId, limit: int = 10, skip: int = 0) -> List[Post]:
+        """
+        Retrieve all ACCEPTED posts created by a specific user with pagination support.
+
+        Args:
+            user_id (ObjectId): The ObjectId of the user whose accepted posts are to be retrieved.
+            limit (int, optional): Maximum number of posts to return. Defaults to 10.
+            skip (int, optional): Number of posts to skip. Defaults to 0.
+
+        Returns:
+            List[Post]: A list of Post objects with status ACCEPTED created by the given user.
+        """
+        cursor = self.collection.find({
+            "user_id": ObjectId(user_id),
+            "status": PostStatus.ACCEPTED
+        }).skip(skip).limit(limit)
+        posts = []
+        async for doc in cursor:
+            posts.append(Post(**doc))
+        return posts
+    
+    async def list_draft_posts_by_user_id(self, user_id: ObjectId, limit: int = 10, skip: int = 0) -> List[Post]:
+        """
+        Retrieve all DRAFT posts created by a specific user with pagination support.
+
+        Args:
+            user_id (ObjectId): The ObjectId of the user whose accepted posts are to be retrieved.
+            limit (int, optional): Maximum number of posts to return. Defaults to 10.
+            skip (int, optional): Number of posts to skip. Defaults to 0.
+
+        Returns:
+            List[Post]: A list of Post objects with status ACCEPTED created by the given user.
+        """
+        cursor = self.collection.find({
+            "user_id": ObjectId(user_id),
+            "status": PostStatus.DRAFT
+        }).skip(skip).limit(limit)
+        posts = []
+        async for doc in cursor:
+            posts.append(Post(**doc))
+        return posts

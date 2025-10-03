@@ -10,7 +10,8 @@ huggingface-hub==0.34.4
 requests==2.32.5
 facebook-business==23.0.1
 python-jose==3.5.0
-langgraph
-langchain
-pydantic[email]
-pyngrok
+langgraph==0.6.8
+langchain==0.3.27
+pydantic[email]==2.11.9
+pyngrok==7.4.0
+

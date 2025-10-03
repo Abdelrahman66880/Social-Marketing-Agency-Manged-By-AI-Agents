@@ -4,8 +4,3 @@ class AccountStatus(str, Enum):
     ACTIVE = "active"
     INACTIVE = "inactive"
     BANNED = "banned"
-
-class PostStatus(str, Enum):
-    DRAFT = "draft"
-    ACCEPTED = "Accepted"
-    REJECTED = "Rejected"

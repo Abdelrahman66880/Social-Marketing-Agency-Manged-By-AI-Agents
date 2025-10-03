@@ -6,9 +6,14 @@ from src.models.db_schemas import BuisnessInfo
 from src.models.enums.DBEnums import DBEnums
 
 
-
 class BusinessInfoModel(BaseModel):
-    """Repository layer for managing BusinessInfo collection."""
+    """
+    Repository layer for managing the BusinessInfo collection in MongoDB.
+
+    This class provides CRUD operations and custom queries for the
+    BusinessInfo documents. It ensures async, non-blocking operations
+    with Motor and enforces indexes as defined in the schema.
+    """
 
     def __init__(self, db_client):
         """
@@ -23,11 +28,12 @@ class BusinessInfoModel(BaseModel):
     # ---------------- Init ---------------- #
 
     @classmethod
-    async def create_instance(cls, db_client: object):
+    async def create_instance(cls, db_client: object) -> "BusinessInfoModel":
         """
         Asynchronously create and initialize a BusinessInfoModel instance.
 
-        Ensures the business info collection and its indexes are set up before returning the instance.
+        Ensures the business info collection and its indexes are set up
+        before returning the instance.
 
         Args:
             db_client (object): The MongoDB client instance.
@@ -39,12 +45,12 @@ class BusinessInfoModel(BaseModel):
         await instance.init_collection()
         return instance
 
-    async def init_collection(self):
+    async def init_collection(self) -> None:
         """
         Initialize the business info collection in the database.
 
-        Checks if the business info collection exists; if not, creates it and sets up the necessary indexes
-        as defined in the BuisnessInfo schema.
+        - Checks if the collection exists; if not, creates it.
+        - Applies indexes as defined in the BuisnessInfo schema.
         """
         all_collections = await self.db_client.list_collection_names()
         if DBEnums.COLLECTION_BUSINESS_INFO_NAME.value not in all_collections:
@@ -62,13 +68,13 @@ class BusinessInfoModel(BaseModel):
 
     async def create_business_info(self, business_info: BuisnessInfo) -> BuisnessInfo:
         """
-        Insert a new BusinessInfo document into the business info collection.
+        Insert a new BusinessInfo document into the collection.
 
         Args:
-            business_info (BuisnessInfo): The BusinessInfo object to be inserted.
+            business_info (BuisnessInfo): The BusinessInfo object to insert.
 
         Returns:
-            BuisnessInfo: The inserted BusinessInfo object with its MongoDB ID set.
+            BuisnessInfo: The inserted object with its MongoDB ID set.
         """
         result = await self.collection.insert_one(
             business_info.dict(by_alias=True, exclude_unset=True)
@@ -97,10 +103,10 @@ class BusinessInfoModel(BaseModel):
 
         Args:
             user_id (str): The string representation of the user's ObjectId.
-            update_data (dict): The fields and values to update.
+            update_data (dict): Fields and values to update.
 
         Returns:
-            dict: Contains 'matched_count' and 'modified_count' indicating the update result.
+            dict: Contains 'matched_count' and 'modified_count'.
         """
         result = await self.collection.update_one(
             {"user_id": ObjectId(user_id)}, {"$set": update_data}
@@ -111,12 +117,19 @@ class BusinessInfoModel(BaseModel):
         }
 
     async def delete_by_user_id(self, user_id: str) -> dict:
-        """Delete BusinessInfo for a given user_id (cascade delete)."""
+        """
+        Delete BusinessInfo documents for a given user_id (cascade delete).
+
+        Args:
+            user_id (str): The string representation of the user's ObjectId.
+
+        Returns:
+            dict: Contains 'deleted_count' indicating the number of deleted docs.
+        """
         result = await self.collection.delete_many({"user_id": ObjectId(user_id)})
         return {"deleted_count": result.deleted_count}
 
     # ---------------- Queries ---------------- #
-
 
     async def list_business_info(
         self, page_no: int = 1, page_size: int = 20
@@ -126,7 +139,7 @@ class BusinessInfoModel(BaseModel):
 
         Args:
             page_no (int, optional): The page number to retrieve. Defaults to 1.
-            page_size (int, optional): The number of documents per page. Defaults to 20.
+            page_size (int, optional): Number of documents per page. Defaults to 20.
 
         Returns:
             List[BuisnessInfo]: A list of BusinessInfo objects for the specified page.
@@ -148,10 +161,10 @@ class BusinessInfoModel(BaseModel):
         Args:
             field (str): The business field to filter by.
             page_no (int, optional): The page number to retrieve. Defaults to 1.
-            page_size (int, optional): The number of documents per page. Defaults to 20.
+            page_size (int, optional): Number of documents per page. Defaults to 20.
 
         Returns:
-            List[BuisnessInfo]: A list of BusinessInfo objects matching the field.
+            List[BuisnessInfo]: A list of matching BusinessInfo objects.
         """
         cursor = (
             self.collection.find({"field": field})
@@ -167,12 +180,12 @@ class BusinessInfoModel(BaseModel):
         """
         Search BusinessInfo documents by keyword (case-insensitive).
 
-        Matches inside the businessKeyWords array.
+        Looks for matches inside the businessKeyWords array.
 
         Args:
             keyword (str): The keyword to search for.
-            page_no (int, optional): The page number to retrieve. Defaults to 1.
-            page_size (int, optional): The number of documents per page. Defaults to 20.
+            page_no (int, optional): The page number. Defaults to 1.
+            page_size (int, optional): Number of documents per page. Defaults to 20.
 
         Returns:
             List[BuisnessInfo]: A list of BusinessInfo objects matching the keyword.
@@ -195,7 +208,7 @@ class BusinessInfoModel(BaseModel):
             user_id (str): The string representation of the user's ObjectId.
 
         Returns:
-            bool: True if a BusinessInfo document exists for the user, False otherwise.
+            bool: True if exists, False otherwise.
         """
         result = await self.collection.find_one(
             {"user_id": ObjectId(user_id)}, {"_id": 1}
@@ -208,15 +221,16 @@ class BusinessInfoModel(BaseModel):
         """
         Append a value to any list field in BusinessInfo.
 
-        Uses $addToSet to avoid duplicates. Example: add keyword, goal, differentiator, etc.
+        Uses $addToSet to avoid duplicates.
+        Example: add keyword, goal, differentiator, etc.
 
         Args:
             user_id (str): The string representation of the user's ObjectId.
-            field_name (str): The name of the list field to update.
-            value (Any): The value to append to the list field.
+            field_name (str): The list field name to update.
+            value (Any): The value to append.
 
         Returns:
-            dict: Contains 'matched_count' and 'modified_count' indicating the update result.
+            dict: Contains 'matched_count' and 'modified_count'.
         """
         result = await self.collection.update_one(
             {"user_id": ObjectId(user_id)}, {"$addToSet": {field_name: value}}

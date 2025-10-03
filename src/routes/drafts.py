@@ -4,8 +4,8 @@ from datetime import datetime
 
 from src.models.db_schemas.Post import Post
 from src.models.PostModel import PostModel
-from src.models.enums.UserEnums import PostStatus
-from models.schemas.DraftSChemas import (
+from src.models.enums.PostEnums import PostStatus
+from src.models.schemas.DraftSChemas import (
     PostResponse,
     CreatePostRequest,
     EditPostRequest,
@@ -15,10 +15,10 @@ from models.schemas.DraftSChemas import (
     RejectDraftRequest,
     RejectDraftResponse
 )
-
-
+from ..models.enums.ResponseSignal import ResponseSignal
+from bson import ObjectId
 # Router initialization
-content_router = APIRouter(
+draft_router = APIRouter(
     prefix="/drafts",
     tags=["Draft drafts"]
 )
@@ -36,7 +36,7 @@ async def get_post_model(request: Request) -> PostModel:
 # Draft Management Endpoints
 # --------------------------
 
-@content_router.post("/create_draft", response_model=PostResponse, status_code=status.HTTP_201_CREATED)
+@draft_router.post("/create_draft", response_model=PostResponse, status_code=status.HTTP_201_CREATED)
 async def create_draft(
     req: CreatePostRequest,
     post_model: PostModel = Depends(get_post_model)
@@ -60,8 +60,9 @@ async def create_draft(
             content=req.content,
             createdAt=datetime.utcnow(),
             status=PostStatus.DRAFT,
-            userRate=0.0,
-            comments=[]
+            userFeedback=0.0,
+            comments=[],
+            user_id= ObjectId(req.user_id)
         )
         created = await post_model.create_post(post)
         return PostResponse(**created.dict())
@@ -73,8 +74,9 @@ async def create_draft(
         )
 
 
-@content_router.get("/get_all_drafts", response_model=List[PostResponse], status_code=status.HTTP_200_OK)
+@draft_router.get("/get_all_drafts", response_model=List[PostResponse], status_code=status.HTTP_200_OK)
 async def get_all_drafts(
+    user_id: str,
     limit: int = Query(10, ge=1, le=100),
     skip: int = Query(0, ge=0),
     post_model: PostModel = Depends(get_post_model)
@@ -93,16 +95,16 @@ async def get_all_drafts(
     Raises:
         HTTPException 404: If no drafts are found.
     """
-    posts = await post_model.list_posts(limit=limit, skip=skip)
-    drafts = [p for p in posts if p.status == PostStatus.DRAFT]
+    posts = await post_model.list_draft_posts_by_user_id(limit=limit, skip=skip, user_id=user_id)
 
-    if not drafts:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No draft posts found")
+    if not posts:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=ResponseSignal.DRAFT_NOT_FOUND.value)
 
-    return [PostResponse(**p.dict()) for p in drafts]
+    return [PostResponse(**p.dict()) for p in posts]
 
-
+@draft_router.get("/get_all_accepted_posts", response_model=List[PostResponse], status_code=status.HTTP_200_OK )
 async def get_all_accepted_posts(
+    user_id:str,
     limit: int = Query(10, ge=1, le=100, description="Maximum number of posts to return (default=10, max=100)"),
     skip: int = Query(0, ge=0, description="Number of posts to skip for pagination"),
     post_model: PostModel = Depends(get_post_model)
@@ -121,17 +123,17 @@ async def get_all_accepted_posts(
         Raises:
             HTTPException 404: If no accepted posts are found.
         """
-    posts = await post_model.list_posts(limit=limit, skip=skip)
-    accepted = [p for p in posts if p.status == PostStatus.ACCEPTED]
+    posts = await post_model.list_accepted_posts_by_user_id(user_id=user_id, limit=limit, skip=skip)
 
-    if not accepted:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No accepted posts found")
+    if not posts:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=ResponseSignal.ACCEPTED_POST_NOT_FOUND.value)
 
-    return [PostResponse(**p.dict()) for p in accepted]
+    return [PostResponse(**p.dict()) for p in posts]
 
 
-@content_router.get("/get_all_rejected", response_model=List[PostResponse], status_code=status.HTTP_200_OK)
+@draft_router.get("/get_all_rejected", response_model=List[PostResponse], status_code=status.HTTP_200_OK)
 async def get_all_rejected_posts(
+    user_id: str,
     limit: int = Query(10, ge=1, le=100, description="Maximum number of posts to return (default=10, max=100)"),
     skip: int = Query(0, ge=0, description="Number of posts to skip for pagination"),
     post_model: PostModel = Depends(get_post_model)
@@ -150,16 +152,14 @@ async def get_all_rejected_posts(
     Raises:
         HTTPException 404: If no rejected posts are found.
     """
-    posts = await post_model.list_posts(limit=limit, skip=skip)
-    rejected = [p for p in posts if p.status == PostStatus.REJECTED]
+    posts = await post_model.list_rejected_posts_by_user_id(user_id=user_id, limit=limit, skip=skip)
+    if not posts:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=ResponseSignal.REJECTED_POST_NOT_FOUND.value)
 
-    if not rejected:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No rejected posts found")
-
-    return [PostResponse(**p.dict()) for p in rejected]
+    return [PostResponse(**p.dict()) for p in posts]
 
 
-@content_router.get("/get_one_draft", response_model=PostResponse, status_code=status.HTTP_200_OK)
+@draft_router.get("/get_one_draft", response_model=PostResponse, status_code=status.HTTP_200_OK)
 async def get_one_draft(
     Post_id: str = Query(..., description="Post ID in MongoDB"),
     post_model: PostModel = Depends(get_post_model)
@@ -178,11 +178,11 @@ async def get_one_draft(
     """
     post = await post_model.get_post_by_id(Post_id)
     if not post or post.status != PostStatus.DRAFT:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Draft not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=ResponseSignal.DRAFT_NOT_FOUND.value)
     return PostResponse(**post.dict())
 
 
-@content_router.put("/edit_draft", response_model=EditPostResponse, status_code=status.HTTP_200_OK)
+@draft_router.put("/edit_draft", response_model=EditPostResponse, status_code=status.HTTP_200_OK)
 async def edit_draft(
     req: EditPostRequest,
     post_model: PostModel = Depends(get_post_model)
@@ -201,12 +201,12 @@ async def edit_draft(
     """
     updated_post = await post_model.update_post_by_id(req.post_id, req.new_content, req.new_title)
     if not updated_post:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=ResponseSignal.DRAFT_NOT_FOUND.value)
 
     return EditPostResponse(id=str(updated_post.id), title=updated_post.title, content=updated_post.content)
 
 
-@content_router.put("/accept_draft", response_model=ApproveDraftResponse, status_code=status.HTTP_200_OK)
+@draft_router.put("/accept_draft", response_model=ApproveDraftResponse, status_code=status.HTTP_200_OK)
 async def approve_draft(
     req: ApproveDraftRequest,
     post_model: PostModel = Depends(get_post_model)
@@ -225,11 +225,11 @@ async def approve_draft(
     """
     post = await post_model.accept_draft_by_id(req.post_id)
     if not post:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Draft not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=ResponseSignal.DRAFT_NOT_FOUND.value)
     return ApproveDraftResponse(id=str(req.post_id), status=PostStatus.ACCEPTED)
 
 
-@content_router.put("/reject_draft", response_model=RejectDraftResponse, status_code=status.HTTP_200_OK)
+@draft_router.put("/reject_draft", response_model=RejectDraftResponse, status_code=status.HTTP_200_OK)
 async def reject_draft(
     req: RejectDraftRequest,
     post_model: PostModel = Depends(get_post_model)
@@ -248,5 +248,5 @@ async def reject_draft(
     """
     post = await post_model.reject_draft_by_id(req.post_id)
     if not post:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Draft not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=ResponseSignal.DRAFT_NOT_FOUND.value)
     return RejectDraftResponse(id=str(req.post_id), status=PostStatus.REJECTED)

@@ -2,7 +2,7 @@ from pydantic import BaseModel, Field, field_validator, ConfigDict
 from typing import Optional
 from bson.objectid import ObjectId
 from datetime import datetime
-from ..enums.UserEnums import PostStatus
+from ..enums.PostEnums import PostStatus
 class Post(BaseModel):
     """Schema for a Post document in the database."""
     id : Optional[ObjectId] = Field(None, alias="_id")
@@ -26,6 +26,8 @@ class Post(BaseModel):
         default=PostStatus.DRAFT,
         description="The status of the post, one of: DRAFT, ACCEPTED, or REJECTED."
     )
+
+    user_id: ObjectId
     
     @field_validator('id', mode="after")
     def validate_post_id(cls, value):

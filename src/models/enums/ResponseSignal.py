@@ -9,3 +9,7 @@ class ResponseSignal(Enum):
     
     SUCCESS_POST_UPLOAD = "post upload successfully uploaded"
     UPADTED_POST_SCCESS = "post update sucessfully"
+
+    DRAFT_NOT_FOUND="Draft not found"
+    ACCEPTED_POST_NOT_FOUND= "No accepted posts found"
+    REJECTED_POST_NOT_FOUND= "No rejected posts found"
