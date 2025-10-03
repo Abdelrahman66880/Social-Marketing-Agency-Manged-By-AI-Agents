@@ -14,7 +14,7 @@ class AnalyticsController:
         posts_url = f"{GRAPH_URL}/{page_id}/posts"
         posts_params = {
             "fields": "id,message,created_time,"
-                      "comments.limit(50){id,message,from,created_time},"
+                      "comments.limit(10){id,message,from,created_time},"
                       "reactions.summary(true),shares",
             "access_token": page_access_token
         }
