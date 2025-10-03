@@ -223,7 +223,7 @@ async def approve_draft(
     Raises:
         HTTPException 404: If draft is not found.
     """
-    post = await post_model.accept_by_id(req.post_id)
+    post = await post_model.accept_draft_by_id(req.post_id)
     if not post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Draft not found")
     return ApproveDraftResponse(id=str(req.post_id), status=PostStatus.ACCEPTED)
@@ -246,7 +246,7 @@ async def reject_draft(
     Raises:
         HTTPException 404: If draft is not found.
     """
-    post = await post_model.reject_by_id(req.post_id)
+    post = await post_model.reject_draft_by_id(req.post_id)
     if not post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Draft not found")
     return RejectDraftResponse(id=str(req.post_id), status=PostStatus.REJECTED)
