@@ -1,8 +1,8 @@
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, ConfigDict
 from typing import Optional, List
 from datetime import datetime
 from bson import ObjectId
-from src.models.enums.UserEnums import PostStatus
+from src.models.enums.PostEnums import PostStatus
 
 
 # ---------- RESPONSE SCHEMAS ----------
@@ -14,9 +14,10 @@ class PostResponse(BaseModel):
     status: PostStatus
     comments: List[str] = []
     userFeedback: float
+    user_id:str
 
-    @field_validator("id", mode="before")
-    def convert_objectid(cls, v):
+    @field_validator("id", "user_id", mode="before")
+    def convert_objectids(cls, v):
         if isinstance(v, ObjectId):
             return str(v)
         return v
@@ -46,7 +47,7 @@ class CreatePostRequest(BaseModel):
         min_length=100,
         description="The main content of the post."
     )
-
+    user_id: str
 
 class EditPostRequest(BaseModel):
     post_id: str
