@@ -1,24 +1,20 @@
-from fastapi import FastAPI, Request
-from src.routes import facebook
+from fastapi import FastAPI
+from motor.motor_asyncio import AsyncIOMotorClient
+from src.routes import drafts
+from src.routes import facebook, webhook
+from src.helpers.config import get_Settings
 app = FastAPI()
 
-VERIFY_TOKEN = "my_secret_123"  
+@app.on_event("startup")
+async def startup_db_client():
+    settings = get_Settings()
+    app.mongo_conn = AsyncIOMotorClient(settings.MONGODB_URL)
+    app.db_client = app.mongo_conn[settings.MONGODB_DATABASE]
 
-app.include_router(facebook.router)
+@app.on_event("shutdown")
+async def shutdown_db_client():
+    app.mongo_conn.close()
 
-@app.get("/webhook")
-async def verify_webhook(request: Request):
-    mode = request.query_params.get("hub.mode")
-    token = request.query_params.get("hub.verify_token")
-    challenge = request.query_params.get("hub.challenge")
-
-    if mode == "subscribe" and token == VERIFY_TOKEN:
-        return int(challenge)
-    return {"error": "Verification failed"}
-
-
-@app.post("/webhook")
-async def receive_message(request: Request):
-    data = await request.json()
-    print("Webhook event:", data)
-    return {"status": "ok"}
+app.include_router(facebook.facebook_router)
+app.include_router(drafts.content_router)
+app.include_router(webhook.webhook_router)
