@@ -5,7 +5,7 @@ from bson.objectid import ObjectId
 from typing import List, Optional
 from datetime import datetime
 from .enums.DBEnums import DBEnums
-
+from .enums.AnalysisEnums import AnlaysisType
 
 class AnalysisModel(BaseModel):
     def __init__(self, db_client):
@@ -19,7 +19,7 @@ class AnalysisModel(BaseModel):
         self.collection = self.db_client(DBEnums.COLLECTION_ANALYTICS_NAME.value)
         
     @classmethod
-    async def create_instance(cls, db_client: object):
+    async def create_instance(cls, db_client: object) -> "AnalysisModel":
         """
         Asynchronously create and initialize an instance of AnalysisModel.
 
@@ -51,7 +51,6 @@ class AnalysisModel(BaseModel):
                     index["key"],
                     name=index["name"],
                     unique=index["unique"],
-                    sparse=index.get("sparse", False),
                 )
     
     async def create_analysis(self, analysis: Analysis) -> Analysis:
@@ -86,17 +85,17 @@ class AnalysisModel(BaseModel):
         
         return Analysis(**result) if result else None
     
-    async def get_analyses_by_post_id(self, post_id: ObjectId) -> List[Analysis]:
+    async def get_all_analyses_by_user_id(self, user_id: ObjectId) -> List[Analysis]:
         """
-        Retrieve all analysis documents associated with a specific post ID.
+        Retrieve all analysis documents associated with a specific user ID.
 
         Args:
-            post_id (ObjectId): The ObjectId of the post to filter analyses by.
+            user_id (ObjectId): The ObjectId of the post to filter analyses by.
 
         Returns:
             List[Analysis]: A list of Analysis objects linked to the given post.
         """
-        cursor = self.collection.find({"post_id": ObjectId(post_id)})
+        cursor = self.collection.find({"user_id": ObjectId(user_id)})
         analyses = []
         async for doc in cursor:
             analyses.append(Analysis(**doc))
@@ -127,6 +126,46 @@ class AnalysisModel(BaseModel):
             List[Analysis]: A list of Analysis objects within the specified range.
         """
         cursor = self.collection.find().skip(skip).limit(limit)
+        analyses = []
+        async for doc in cursor:
+            analyses.append(Analysis(**doc))
+        return analyses
+    
+    async def get_interaction_analyses_by_user_id(self, user_id: ObjectId) -> List[Analysis]:
+        """
+        Retrieve all INTERACTION_ANALYSIS documents associated with a specific user.
+
+        Args:
+            user_id (ObjectId): The ObjectId of the user to filter analyses by.
+
+        Returns:
+            List[Analysis]: A list of Analysis objects where analysisType is INTERACTION_ANALYSIS
+                            and linked to the given user.
+        """
+        cursor = self.collection.find({
+            "user_id": ObjectId(user_id),
+            "analysisType": AnlaysisType.INTERACTION_ANALYSIS
+        })
+        analyses = []
+        async for doc in cursor:
+            analyses.append(Analysis(**doc))
+        return analyses
+
+    async def get_competitor_analyses_by_user_id(self, user_id: ObjectId) -> List[Analysis]:
+        """
+        Retrieve all COMPETITOR_ANALYSIS documents associated with a specific user.
+
+        Args:
+            user_id (ObjectId): The ObjectId of the user to filter analyses by.
+
+        Returns:
+            List[Analysis]: A list of Analysis objects where analysisType is COMPETITOR_ANALYSIS
+                            and linked to the given user.
+        """
+        cursor = self.collection.find({
+            "user_id": ObjectId(user_id),
+            "analysisType": AnlaysisType.COMPETITOR_ANALYSIS
+        })
         analyses = []
         async for doc in cursor:
             analyses.append(Analysis(**doc))
