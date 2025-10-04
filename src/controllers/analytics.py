@@ -29,6 +29,7 @@ class AnalyticsController:
         conversation_response = requests.get(conversation_url, params=conversation_params).json()
         messages = conversation_response.get("data", [])
 
+        # compute the analytics
         total_posts = len(posts)
         total_comments = sum(
             len(p.get("comments", {}).get("data", []))
