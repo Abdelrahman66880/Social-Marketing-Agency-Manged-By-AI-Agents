@@ -3,6 +3,9 @@ import httpx
 from fastapi import HTTPException
 from ..helpers.config import get_Settings
 import requests
+import logging
+
+logger = logging.getLogger(__name__)
 
 GRAPH_URL = "https://graph.facebook.com/v23.0"
 class AnalyticsController:
@@ -50,4 +53,5 @@ class AnalyticsController:
     
     @staticmethod
     async def analyze_competitors(key_words_list: List, page_access_token: str, max_pages: int = 5):
+        results = []
         pass
