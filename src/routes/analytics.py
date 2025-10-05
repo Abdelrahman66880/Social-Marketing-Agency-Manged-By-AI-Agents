@@ -3,6 +3,8 @@ from fastapi import APIRouter, status, Depends, HTTPException
 from typing import Optional, List, Dict, Any
 from ..controllers.analytics import AnalyticsController
 from models.schemas import InteractionsResponse, CompetitorRequest, CompetitorSummary
+from models.schemas.Recommendation import Recommendation
+from models.schemas.RecommendationsRequest import RecommendationsRequest
 
 analytics_router = APIRouter(
     prefix="/analytics", 
@@ -50,3 +52,18 @@ async def get_competitors_analytics(key_words: str, page_access_token: str, max_
             status_code=500,
             detail=str(e)
         )
+
+@analytics_router.post("/recommendations", response_model=List[Recommendation])
+async def post_recommendations(req: RecommendationsRequest):
+    """
+    Generate AI-powered recommendations based on interaction & competitor data.
+    """
+    try:
+        recs = await AnalyticsController.generate_recommendations(
+            req.page_id, 
+            req.page_access_token, 
+            req.business_profile
+        )
+        return recs
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
