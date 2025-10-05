@@ -30,5 +30,23 @@ async def get_analysis_interaction(page_id: str, page_access_token: str) -> Dict
 
 
 @analytics_router.get("/competitors", response_model=List[CompetitorSummary])
-async def get_competitors_analytics():
-    pass
+async def get_competitors_analytics(key_words: str, page_access_token: str, max_pages: int = 5):
+    """
+    Monitor Competitors unsing Keywords
+    """
+    try:
+        key_words_list = [
+            k.strip()
+            for k in key_words.split(",") if k.strip()
+        ]
+        result = await AnalyticsController.analyze_competitors(
+            key_words_list=key_words_list,
+            page_access_token=page_access_token,
+            max_pages= max_pages
+        )
+        return result
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=str(e)
+        )
