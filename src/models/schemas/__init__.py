@@ -1,3 +1,3 @@
-from CompetitorSummary import CompetitorSummary
-from CompetitorRequest import CompetitorRequest
-from InteractionsResponse import InteractionResponse
+from .CompetitorSummary import CompetitorSummary
+from .CompetitorRequest import CompetitorRequest
+from .InteractionsResponse import InteractionResponse
