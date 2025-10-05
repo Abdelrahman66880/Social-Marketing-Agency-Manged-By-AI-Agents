@@ -67,28 +67,38 @@ class AnalyticsController:
                 "limit": max_pages,
                 "access_token": page_access_token
                 }
-                async with session.get(url=search_url, params=params) as response:
-                    post_data = await response.json()
-                    posts = post_data.get("data", [])
+                async with session.get(search_url, params=params) as resp:
+                    search_data = await resp.json()
+                    pages = search_data.get("data", [])
                     
-                total_enagegment = 0
-                post_types = {}
-                for post in posts:
-                    reactions = post.get("reactions", {}).get("summary", {}).get("total_count", 0)
-                    comments = post.get("comments", {}).get("summary", {}).get("total_count", 0)
-                    shares = post.get("shares", {}).get("count", 0)
-                    total_engagement += (reactions + comments + shares)
+                for p in pages:
+                    page_id = p.get("id")
+                    name = p.get("name")
+                    posts_url = f"{GRAPH_URL}/{page_id}/posts"
+                    post_params = {
+                        "fields": "id,message,created_time,reactions.summary(true),comments.summary(true),shares",
+                        "limit": 10,
+                        "access_token": page_access_token
+                    }
+                    async with session.get(posts_url, params=post_params) as resp:
+                        post_data = await resp.json()
+                        posts = post_data.get("data", [])
+                    
+                    
+                    total_engagement = 0
+                    for post in posts:
+                        reactions = post.get("reactions", {}).get("summary", {}).get("total_count", 0)
+                        comments = post.get("comments", {}).get("summary", {}).get("total_count", 0)
+                        shares = post.get("shares", {}).get("count", 0)
+                        total_engagement += (reactions + comments + shares)
+
                     avg_engagement_rate = (total_engagement / len(posts)) if posts else 0
-                results.append({
-                    "page_id": page_id,
-                    "name": name,
-                    "avg_engagement_rate": avg_engagement_rate,
-                    "posts_analyzed": len(posts),
-                    "top_content_type": top_content_type,
-                    "fan_count": p.get("fan_count"),
-                    "category": p.get("category"),
-                })
-            return results
-                    
-                
-                
+
+                    results.append({
+                        "page_id": page_id,
+                        "name": name,
+                        "avg_engagement_rate": avg_engagement_rate,
+                        "category": p.get("category"),
+                    })
+
+        return results
