@@ -46,3 +46,8 @@ class AnalyticsController:
             "total_comments": total_comments,
             "total_messages": total_messages,
         }
+
+    
+    @staticmethod
+    async def analyze_competitors(key_words_list: List, page_access_token: str, max_pages: int = 5):
+        pass
