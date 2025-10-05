@@ -15,6 +15,10 @@ from src.models.schemas.facebookSchemas import (
     FetchPageMessagesRequest,
     FetchPageFeedInteractionsRequest,
 )
+from typing import List
+
+
+setting_object = get_Settings()
 
 facebook_router = APIRouter(
     prefix="/facebook", 
@@ -122,7 +126,7 @@ async def reply_for_comment(request: ReplyCommentRequest):
 
 
 @facebook_router.get("/search_for_pages")
-def search_for_pages():
+def search_for_pages(keywords: List[str], page_access_token: str, limit: int = 5):
     """
     Search for competitor Facebook pages by keyword.
 
@@ -133,7 +137,37 @@ def search_for_pages():
     Output:
     - List of matching pages with relevant metadata.
     """
-    return
+    GRAPH_API_VERSION = setting_object.GRAPH_API_VERSION
+    url = f"https://graph.facebook.com/{GRAPH_API_VERSION}/search"
+    params = {
+        "type": "page",
+        "q": keywords,              
+        "fields": "id,name,category",
+        "limit": limit,
+        "access_token": page_access_token
+    }
+    response = requests.get(url=url, params=params)
+    result = response.json()
+    
+    if 'error' in result:
+        raise HTTPException(
+            status_code=response.status_code,
+            detail=result["error"]
+        )
+    
+    # the formmated returned
+    pages = [
+        {
+            "id": page.get("id"),
+            "name":page.get("name"),
+            "category": page.get("category"),
+        }
+        for page in result.get('data', [])
+    ] 
+    return {
+        "keywords": keywords,
+        "results": pages
+    }
 
 
 @facebook_router.get("/get_chat_history")
