@@ -102,3 +102,8 @@ class AnalyticsController:
                     })
 
         return results
+    
+    
+    @staticmethod
+    async def generate_recommendations(page_id:str, page_access_token:str, business_profile: Dict = None):
+        pass
