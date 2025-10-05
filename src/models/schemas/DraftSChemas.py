@@ -1,28 +1,8 @@
-from pydantic import BaseModel, Field, field_validator, ConfigDict
-from typing import Optional, List
-from datetime import datetime
-from bson import ObjectId
+from pydantic import BaseModel, Field
 from src.models.enums.PostEnums import PostStatus
 
 
 # ---------- RESPONSE SCHEMAS ----------
-class PostResponse(BaseModel):
-    id: str
-    title: str
-    content: str
-    createdAt: datetime
-    status: PostStatus
-    comments: List[str] = []
-    userFeedback: float
-    user_id:str
-
-    @field_validator("id", "user_id", mode="before")
-    def convert_objectids(cls, v):
-        if isinstance(v, ObjectId):
-            return str(v)
-        return v
-
-
 class EditPostResponse(BaseModel):
     id: str
     title: str

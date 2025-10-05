@@ -1,11 +1,13 @@
-from pydantic import BaseModel, Field, field_validator, ConfigDict
-from typing import Optional
+from pydantic import BaseModel, Field, field_validator, ConfigDict, BeforeValidator
+from typing import Optional, Annotated
 from bson.objectid import ObjectId
 from datetime import datetime
 from ..enums.PostEnums import PostStatus
+
+PyObjectId = Annotated[str, BeforeValidator(str)]
 class Post(BaseModel):
     """Schema for a Post document in the database."""
-    id : Optional[ObjectId] = Field(None, alias="_id")
+    id : Optional[PyObjectId] = Field(None, alias="_id")
     userFeedback: float = Field(
         default=0.0,
         ge=0.0,
@@ -27,15 +29,27 @@ class Post(BaseModel):
         description="The status of the post, one of: DRAFT, ACCEPTED, or REJECTED."
     )
 
-    user_id: ObjectId
+    user_id: PyObjectId
     
-    @field_validator('id', mode="after")
-    def validate_post_id(cls, value):
-        if not isinstance(value, ObjectId):
-            raise ValueError("post_id must be a valid ObjectId")
-        return value
-    
-    model_config = ConfigDict(arbitrary_types_allowed=True)
+    model_config = ConfigDict(
+        arbitrary_types_allowed=True,
+        populate_by_name=True,
+        json_schema_extra={
+            "example": {
+                "_id": "66fe9e7fbd12f8f9c9f3e3a1",
+                "title": "AI in Healthcare: Opportunities and Challenges",
+                "content": "Artificial Intelligence is transforming the healthcare industry by improving diagnostics, treatment recommendations, and patient outcomes. However, challenges remain in terms of data privacy and interpretability of AI models...",
+                "userFeedback": 4.7,
+                "comments": [
+                    "This is an insightful post!",
+                    "AI ethics should be discussed more here."
+                ],
+                "status": "DRAFT",
+                "createdAt": "2025-10-05T14:00:00Z",
+                "user_id": "66fe9e7fbd12f8f9c9f3e3d2"
+            }
+        }
+        )
     
     @classmethod
     def get_indexes(cls):
