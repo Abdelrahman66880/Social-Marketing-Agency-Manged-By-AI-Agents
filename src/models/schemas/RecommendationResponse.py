@@ -1,7 +1,7 @@
 from pydantic import BaseModel, Field
 from typing import List, Optional
 from datetime import datetime
-
+from .Recommendation import Recommendation
 
 class RecommendationsResponse(BaseModel):
     """
