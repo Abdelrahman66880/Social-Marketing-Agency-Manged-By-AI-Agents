@@ -4,6 +4,7 @@ from fastapi import HTTPException
 from ..helpers.config import get_Settings
 import requests
 import logging
+from aiohttp import ClientSession
 
 logger = logging.getLogger(__name__)
 
@@ -53,6 +54,41 @@ class AnalyticsController:
     
     @staticmethod
     async def analyze_competitors(key_words_list: List, page_access_token: str, max_pages: int = 5):
+        GRAPH_URL = "https://graph.facebook.com/v23.0"
         results = []
-        pass
-    # ==============================================================================================
+        
+        async with ClientSession() as session:
+            for kw in key_words_list:
+                search_url = f"{GRAPH_URL}/search"
+                params = {
+                "type": "page",
+                "q": kw,
+                "fields": "id,name,category,fan_count",
+                "limit": max_pages,
+                "access_token": page_access_token
+                }
+                async with session.get(url=search_url, params=params) as response:
+                    post_data = await response.json()
+                    posts = post_data.get("data", [])
+                    
+                total_enagegment = 0
+                post_types = {}
+                for post in posts:
+                    reactions = post.get("reactions", {}).get("summary", {}).get("total_count", 0)
+                    comments = post.get("comments", {}).get("summary", {}).get("total_count", 0)
+                    shares = post.get("shares", {}).get("count", 0)
+                    total_engagement += (reactions + comments + shares)
+                    avg_engagement_rate = (total_engagement / len(posts)) if posts else 0
+                results.append({
+                    "page_id": page_id,
+                    "name": name,
+                    "avg_engagement_rate": avg_engagement_rate,
+                    "posts_analyzed": len(posts),
+                    "top_content_type": top_content_type,
+                    "fan_count": p.get("fan_count"),
+                    "category": p.get("category"),
+                })
+            return results
+                    
+                
+                
