@@ -9,7 +9,7 @@ analytics_router = APIRouter(
     tags=["Analytics"]
 )
 
-
+@analytics_router.get("/interactions", response_model=InteractionsResponse)
 async def get_analysis_interaction(page_id: str, page_access_token: str) -> Dict[str, Any]:
     """
     Fetches and analyzes interactions for a given Facebook page.
