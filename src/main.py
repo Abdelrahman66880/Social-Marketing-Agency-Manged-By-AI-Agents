@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from motor.motor_asyncio import AsyncIOMotorClient
 from src.routes import drafts
-from src.routes import facebook, webhook
+from src.routes import facebook, webhook, notification
 from src.helpers.config import get_Settings
 app = FastAPI()
 
@@ -16,5 +16,6 @@ async def shutdown_db_client():
     app.mongo_conn.close()
 
 app.include_router(facebook.facebook_router)
-# app.include_router(drafts.draft_router)
-# app.include_router(webhook.webhook_router)
+app.include_router(drafts.draft_router)
+app.include_router(webhook.webhook_router)
+app.include_router(notification.notification_route)

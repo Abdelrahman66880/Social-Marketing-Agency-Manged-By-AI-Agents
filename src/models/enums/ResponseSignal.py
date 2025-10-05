@@ -13,3 +13,7 @@ class ResponseSignal(Enum):
     DRAFT_NOT_FOUND="Draft not found"
     ACCEPTED_POST_NOT_FOUND= "No accepted posts found"
     REJECTED_POST_NOT_FOUND= "No rejected posts found"
+
+    INVALID_USER_ID ="Invalid user_id format"
+    FAILED_TO_MARK_AS_READ = "Failed to mark notification as read"
+    NOTIFICATION_NOT_FOUND = "Notification not found."
