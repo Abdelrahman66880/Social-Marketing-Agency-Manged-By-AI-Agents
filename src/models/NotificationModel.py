@@ -4,7 +4,7 @@ from pymongo import DESCENDING
 from typing import List, Optional
 from src.models.db_schemas.Notification import Notification
 from src.models.BaseModel import BaseModel
-from src.models.enums import DBEnums
+from src.models.enums.DBEnums import DBEnums
 
 
 class NotificationModel(BaseModel):
@@ -63,17 +63,19 @@ class NotificationModel(BaseModel):
 
     async def create_notification(self, notification: Notification) -> Notification:
         """
-        Insert a new notification document.
+        Insert a new notification document into the database.
 
         Args:
             notification (Notification): The notification object to insert.
 
         Returns:
-            str: The ID of the inserted notification.
+            Notification: The inserted notification object with its generated ID.
         """
-        notif_dict = notification.dict(by_alias=True, exclude_none=True)
+        notif_dict = notification.model_dump(by_alias=True, exclude_none=True)
         result = await self.collection.insert_one(notif_dict)
+        notification.id = str(result.inserted_id)
         return notification
+
 
     async def get_by_id(self, notif_id: str) -> Optional[Notification]:
         """
@@ -100,7 +102,7 @@ class NotificationModel(BaseModel):
             List[Notification]: A list of user notifications.
         """
         cursor = (
-            self.collection.find({"user_id": ObjectId(user_id)})
+            self.collection.find({"user_id": user_id})
             .sort("createdAt", DESCENDING)
             .limit(limit)
         )
