@@ -46,4 +46,3 @@ class AnalyticsController:
             "total_comments": total_comments,
             "total_messages": total_messages,
         }
-    
