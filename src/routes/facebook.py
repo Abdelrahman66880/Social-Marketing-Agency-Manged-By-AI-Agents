@@ -169,20 +169,48 @@ def search_for_pages(keywords: List[str], page_access_token: str, limit: int = 5
         "results": pages
     }
 
+# ======================================================================================
 
 @facebook_router.get("/get_chat_history")
-def get_chat_history():
-    """
-    Retrieve the chat history of a specific conversation.
+def get_chat_history(page_id: str,chat_id: str,page_access_token: str):
 
-    Input:
-    - page_id (str): ID of the Facebook page.
-    - chat_id (str): ID of the chat thread.
+    GRAPH_API_VERSION = setting_object.GRAPH_API_VERSION
+    url = f"https://graph.facebook.com/{GRAPH_API_VERSION}/{chat_id}/messages"
+    params = {
+        "fields": "message,from,to,created_time",
+        "access_token": page_access_token
+    }
 
-    Output:
-    - List of messages in the conversation, formatted for AI processing.
-    """
-    return
+    response = requests.get(url, params=params)
+    result = response.json()
+
+    # Handle API errors
+    if "error" in result:
+        raise HTTPException(
+            status_code=response.status_code,
+            detail=result["error"]
+        )
+
+    # Format messages for readability / AI input
+    messages = [
+        {
+            "sender_id": msg["from"]["id"],
+            "sender_name": msg["from"].get("name", "Unknown"),
+            "recipient_id": msg["to"]["data"][0]["id"] if msg.get("to") else None,
+            "message": msg.get("message"),
+            "created_time": msg["created_time"]
+        }
+        for msg in result.get("data", [])
+    ]
+
+    return {
+        "page_id": page_id,
+        "chat_id": chat_id,
+        "messages": messages
+    }
+
+
+# ===========================================================================================
 
 @facebook_router.post("/fetch_page_messages")
 async def fetch_page_messages(request: FetchPageMessagesRequest):
