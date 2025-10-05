@@ -170,9 +170,22 @@ def search_for_pages(keywords: List[str], page_access_token: str, limit: int = 5
     }
 
 # ======================================================================================
+# I need to check availability of chat id
+# ======================================================================================
 
 @facebook_router.get("/get_chat_history")
 def get_chat_history(page_id: str,chat_id: str,page_access_token: str):
+    """
+    Retrieve the chat history of a specific conversation between the page and a customer.
+
+    Input:
+    - page_id (str): ID of the Facebook page.
+    - chat_id (str): ID of the chat thread (conversation ID).
+    - page_access_token (str): Valid page access token with 'pages_messaging' and 'pages_read_engagement' permissions.
+
+    Output:
+    - List of messages in the conversation, formatted for AI processing.
+    """
 
     GRAPH_API_VERSION = setting_object.GRAPH_API_VERSION
     url = f"https://graph.facebook.com/{GRAPH_API_VERSION}/{chat_id}/messages"
