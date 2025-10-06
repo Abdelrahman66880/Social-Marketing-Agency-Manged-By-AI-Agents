@@ -16,6 +16,7 @@ from src.models.schemas.facebookSchemas import (
     FetchPageFeedInteractionsRequest,
 )
 from typing import List
+from fastapi import Query, Body
 
 
 setting_object = get_Settings()
@@ -126,48 +127,57 @@ async def reply_for_comment(request: ReplyCommentRequest):
 
 
 @facebook_router.get("/search_for_pages")
-def search_for_pages(keywords: List[str], page_access_token: str, limit: int = 5):
+def search_for_pages(
+    keywords: List[str] = Query(..., description="Comma-separated keywords, e.g. social,marketing"),
+    page_access_token: str = Query(..., description="Page access token from Graph API"),
+    limit: int = Query(5, description="Maximum number of pages per keyword")
+):
     """
-    Search for competitor Facebook pages by keyword.
+    Search for competitor Facebook pages by keyword using the Meta Graph API.
 
     Input:
-    - keywords (List[str]): Keywords to search with.
-    - limit (int, optional): Maximum number of pages to return.
+    - keywords (List[str]): Keywords to search with (comma-separated in query string).
+    - limit (int, optional): Maximum number of pages per keyword.
+    - page_access_token (str): Page access token with proper permissions.
 
     Output:
     - List of matching pages with relevant metadata.
     """
-    GRAPH_API_VERSION = setting_object.GRAPH_API_VERSION
+
+    GRAPH_API_VERSION = "v23.0"
     url = f"https://graph.facebook.com/{GRAPH_API_VERSION}/search"
-    params = {
-        "type": "page",
-        "q": keywords,              
-        "fields": "id,name,category",
-        "limit": limit,
-        "access_token": page_access_token
-    }
-    response = requests.get(url=url, params=params)
-    result = response.json()
-    
-    if 'error' in result:
-        raise HTTPException(
-            status_code=response.status_code,
-            detail=result["error"]
-        )
-    
-    # the formmated returned
+
+    results = []
+
+    for keyword in keywords:
+        params = {
+            "type": "page",
+            "q": keyword,
+            "fields": "id,name,category,link",
+            "limit": limit,
+            "access_token": page_access_token
+        }
+        response = requests.get(url, params=params)
+        data = response.json()
+
+        if "error" in data:
+            raise HTTPException(status_code=response.status_code, detail=data["error"])
+
+        if "data" in data:
+            results.extend(data["data"])
+
     pages = [
         {
-            "id": page.get("id"),
-            "name":page.get("name"),
-            "category": page.get("category"),
+            "id": p.get("id"),
+            "name": p.get("name"),
+            "category": p.get("category"),
+            "link": p.get("link")
         }
-        for page in result.get('data', [])
-    ] 
-    return {
-        "keywords": keywords,
-        "results": pages
-    }
+        for p in results
+    ]
+
+    return {"keywords": keywords, "results": pages}
+
 
 # ======================================================================================
 # I need to check availability of chat id
