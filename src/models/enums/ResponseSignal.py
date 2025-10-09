@@ -17,3 +17,6 @@ class ResponseSignal(Enum):
     INVALID_USER_ID ="Invalid user_id format"
     FAILED_TO_MARK_AS_READ = "Failed to mark notification as read"
     NOTIFICATION_NOT_FOUND = "Notification not found."
+    
+    ERROR_USER_IS_ALREADY_EXIST = "error user is already exist"
+    USER_REGISTERED_SUCCESSFULLY= "User registered successfully"
