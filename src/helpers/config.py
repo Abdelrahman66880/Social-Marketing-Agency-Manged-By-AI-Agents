@@ -12,6 +12,9 @@ class Settings(BaseSettings):
     PAGE_ACCESS_TOKEN: str
     PAGE_ID: str
     WEB_HOOK_VERIFY_TOKEN: str
+    SECRET_KEY: str
+    ALGORITHM: str
+    ACCESS_TOKEN_EXPIRE_DAYS: int
 
     class Config:
         env_file = os.path.join(BASE_DIR, ".env")  # src/.env
