@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from motor.motor_asyncio import AsyncIOMotorClient
 from src.routes import drafts
-from src.routes import facebook, webhook, notification
+from src.routes import facebook, webhook, notification, schedule
 from src.helpers.config import get_Settings
 app = FastAPI()
 
@@ -19,3 +19,4 @@ app.include_router(facebook.facebook_router)
 app.include_router(drafts.draft_router)
 app.include_router(webhook.webhook_router)
 app.include_router(notification.notification_route)
+app.include_router(schedule.schedule_router)
