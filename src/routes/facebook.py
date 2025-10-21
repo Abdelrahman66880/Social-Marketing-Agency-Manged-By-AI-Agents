@@ -5,6 +5,7 @@ from ..models.enums.ResponseSignal import ResponseSignal
 from ..models.db_schemas.Post import Post
 from ..models.schemas.postSchams import PageInfoSchema, PostUpdateSchema
 from src.controllers.facebook import FacebookController
+from ..models.schemas.postSchams import PostUploadSchema
 import requests
 import json
 import os
@@ -26,16 +27,10 @@ facebook_router = APIRouter(
     tags=["Facebook"]
 )
 
-"""
-Note:
-The following endpoint documentation is purely conceptual. 
-It is intended to clarify the objectives and expected functionality, 
-not to represent the final implementation.
-"""
 
 
 @facebook_router.post("/upload_post")
-def upload_post(page_id: str, page_Access_Token: str):
+def upload_post(page_id: str, page_Access_Token: str, post: PostUploadSchema):
     """
     Upload a new post to a Facebook page.
 

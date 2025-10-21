@@ -14,3 +14,6 @@ class PageInfoSchema(BaseModel):
 class PostUpdateSchema(BaseModel):
     message: Optional[str] = None
     link: Optional[str] = None
+    
+class PostUploadSchema(BaseModel):
+    message: str
