@@ -16,7 +16,7 @@ class AnalysisModel(BaseModel):
             db_client (object): The database client instance for MongoDB operations.
         """
         super().__init__(db_client)
-        self.collection = self.db_client(DBEnums.COLLECTION_ANALYTICS_NAME.value)
+        self.collection = self.db[DBEnums.COLLECTION_ANALYTICS_NAME.value]
         
     @classmethod
     async def create_instance(cls, db_client: object) -> "AnalysisModel":
@@ -43,8 +43,8 @@ class AnalysisModel(BaseModel):
         as defined in the Analysis schema.
         """
         all_collections = await self.db_client.list_collection_names()
-        if DBEnums.COLLECTION_ANALYSIS_NAME.value not in all_collections:
-            self.collection = self.db_client[DBEnums.COLLECTION_ANALYSIS_NAME.value]
+        if DBEnums.COLLECTION_ANALYTICS_NAME.value not in all_collections:
+            self.collection = self.db[DBEnums.COLLECTION_ANALYTICS_NAME.value]
             indexes = Analysis.get_indexes()
             for index in indexes:
                 await self.collection.create_index(
@@ -63,9 +63,8 @@ class AnalysisModel(BaseModel):
         Returns:
             Analysis: The inserted Analysis object with its MongoDB ID set.
         """
-        result = await self.collection.inset_one(analysis.dict(by_alias=True, exclude_unset=True))
-        analysis.id = result.inserted_id
-        return analysis
+        result = await self.collection.insert_one(analysis.dict(by_alias=True, exclude_unset=True))
+        return result.inserted_id
     
     async def get_analysis_by_id(self, analysis_id: str) -> Optional[Analysis]:
         """
@@ -131,7 +130,7 @@ class AnalysisModel(BaseModel):
             analyses.append(Analysis(**doc))
         return analyses
     
-    async def get_interaction_analyses_by_user_id(self, user_id: ObjectId) -> List[Analysis]:
+    async def get_interaction_analysis_by_user_id(self, user_id: str, skip: int, limit: int) -> List[Analysis]:
         """
         Retrieve all INTERACTION_ANALYSIS documents associated with a specific user.
 
@@ -143,15 +142,15 @@ class AnalysisModel(BaseModel):
                             and linked to the given user.
         """
         cursor = self.collection.find({
-            "user_id": ObjectId(user_id),
+            "user_id": user_id,
             "analysisType": AnlaysisType.INTERACTION_ANALYSIS
-        })
+        }).skip(skip).limit(limit)
         analyses = []
         async for doc in cursor:
             analyses.append(Analysis(**doc))
         return analyses
 
-    async def get_competitor_analyses_by_user_id(self, user_id: ObjectId) -> List[Analysis]:
+    async def get_competitor_analysis_by_user_id(self, user_id: str, skip, limit) -> List[Analysis]:
         """
         Retrieve all COMPETITOR_ANALYSIS documents associated with a specific user.
 
@@ -163,9 +162,9 @@ class AnalysisModel(BaseModel):
                             and linked to the given user.
         """
         cursor = self.collection.find({
-            "user_id": ObjectId(user_id),
+            "user_id": user_id,
             "analysisType": AnlaysisType.COMPETITOR_ANALYSIS
-        })
+        }).skip(skip).limit(limit)
         analyses = []
         async for doc in cursor:
             analyses.append(Analysis(**doc))

@@ -20,3 +20,7 @@ class ResponseSignal(Enum):
     
     ERROR_USER_IS_ALREADY_EXIST = "error user is already exist"
     USER_REGISTERED_SUCCESSFULLY= "User registered successfully"
+
+    RECOMMENDATION_NOT_FOUND = "Recommendation not found"
+    COMPETITOR_ANALYSIS_NOT_FOUND = "Competitor analysis not found"
+    INTERACTION_ANALYSIS_NOT_FOUND = "Interaction analysis not found"
