@@ -30,14 +30,5 @@ class CreatePostRequest(BaseModel):
     user_id: str
 
 class EditPostRequest(BaseModel):
-    post_id: str
     new_title: str = Field(..., min_length=3, max_length=100)
     new_content: str = Field(..., min_length=100)
-
-
-class ApproveDraftRequest(BaseModel):
-    post_id: str
-
-
-class RejectDraftRequest(BaseModel):
-    post_id: str
