@@ -1,69 +1,204 @@
-# Analytics routes
-from fastapi import APIRouter, status, Depends, HTTPException
-from typing import Optional, List, Dict, Any
-from ..controllers.analytics import AnalyticsController
-from models.schemas import InteractionsResponse, CompetitorRequest, CompetitorSummary
-from models.schemas.Recommendation import Recommendation
-from models.schemas.RecommendationsRequest import RecommendationsRequest
+# -----------------------------------
+# Analytics Routes
+# -----------------------------------
+from fastapi import APIRouter, status, Depends, HTTPException, Request, Path
+from typing import List
+from src.models.db_schemas.Recommendation import Recommendation
+from src.models.db_schemas.Analysis import Analysis
+from src.models.RecommendationModel import RecommendationModel
+from src.models.AnalysisModel import AnalysisModel
+from src.models.enums.ResponseSignal import ResponseSignal
 
+
+# -----------------------------------
+# Router Initialization
+# -----------------------------------
 analytics_router = APIRouter(
-    prefix="/analytics", 
+    prefix="/analytics",
     tags=["Analytics"]
 )
 
-@analytics_router.get("/interactions", response_model=InteractionsResponse)
-async def get_analysis_interaction(page_id: str, page_access_token: str) -> Dict[str, Any]:
+
+# -----------------------------------
+# Dependency Injection
+# -----------------------------------
+async def get_recommendation_model(request: Request) -> RecommendationModel:
     """
-    Fetches and analyzes interactions for a given Facebook page.
+    Retrieve a `RecommendationModel` instance for database operations.
+
+    Args:
+        request (Request): The incoming FastAPI request object.
+
+    Returns:
+        RecommendationModel: An initialized RecommendationModel instance connected to the database.
+    """
+    db_client = request.app.db_client
+    return await RecommendationModel.create_instance(db_client)
+
+
+async def get_analysis_model(request: Request) -> AnalysisModel:
+    """
+    Retrieve a `AnalysisModel` instance for database operations.
+
+    Args:
+        request (Request): The incoming FastAPI request object.
+
+    Returns:
+        AnalysisModel: An initialized AnalysisModel instance connected to the database.
+    """
+    db_client = request.app.db_client
+    return await AnalysisModel.create_instance(db_client)
+
+
+# -----------------------------------
+# Recommendation Endpoints
+# -----------------------------------
+@analytics_router.post(
+    "/recommendations",
+    status_code=status.HTTP_201_CREATED,
+    response_model=Recommendation
+)
+async def post_recommendations(
+    req: Recommendation,
+    recommendation_model: RecommendationModel = Depends(get_recommendation_model)
+):
+    """
+    Add a recommendation to the database.
     
     Args:
-        page_id (str): The Facebook page ID.
-        page_access_token (str): The access token for the Facebook page.
-        
-    Returns:
-        Dict[str, Any]: A dictionary containing analyzed interaction data.
+        req: A Recommendation database schema.
     """
     try:
-        analyst = AnalyticsController()
-        result = await analyst.analyze_interaction_by_page_id(page_id=page_id, page_access_token=page_access_token)
-        return result
+        recs = await recommendation_model.create_recommendation(req)
+        req.id = str(recs)
+        return req
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@analytics_router.get("/competitors", response_model=List[CompetitorSummary])
-async def get_competitors_analytics(key_words: str, page_access_token: str, max_pages: int = 5):
+@analytics_router.get(
+    "/users/{user_id}/recommendations/{limit}/{skip}",
+    response_model=List[Recommendation],
+    status_code=status.HTTP_200_OK
+)
+async def get_recommendations(
+    user_id: str,
+    limit: int = Path(..., ge=1, le=100, description="Maximum number of recommendations to return."),
+    skip: int = Path(..., ge=0, description="Number of recommendations to skip for pagination."),
+    recommendation_model: RecommendationModel = Depends(get_recommendation_model)
+):
     """
-    Monitor Competitors unsing Keywords
-    """
-    try:
-        key_words_list = [
-            k.strip()
-            for k in key_words.split(",") if k.strip()
-        ]
-        result = await AnalyticsController.analyze_competitors(
-            key_words_list=key_words_list,
-            page_access_token=page_access_token,
-            max_pages= max_pages
-        )
-        return result
-    except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=str(e)
-        )
+    Get all recommendations associated with a user ID.
 
-@analytics_router.post("/recommendations", response_model=List[Recommendation])
-async def post_recommendations(req: RecommendationsRequest):
-    """
-    Generate AI-powered recommendations based on interaction & competitor data.
+    Args:
+        user_id: The user ID.
+        limit: Pagination limit.
+        skip: Pagination offset.
+
+    Returns:
+        All recommendations associated with the user ID.
     """
     try:
-        recs = await AnalyticsController.generate_recommendations(
-            req.page_id, 
-            req.page_access_token, 
-            req.business_profile
-        )
+        recs = await recommendation_model.get_by_user_id(user_id=user_id, limit=limit, skip=skip)
+        if not recs:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=ResponseSignal.RECOMMENDATION_NOT_FOUND.value
+            )
+        return recs
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# -----------------------------------
+# Analysis Endpoints
+# -----------------------------------
+@analytics_router.post(
+    "/analysis",
+    status_code=status.HTTP_201_CREATED,
+    response_model=Analysis
+)
+async def post_analysis(
+    req: Analysis,
+    analysis_model: AnalysisModel = Depends(get_analysis_model)
+):
+    """
+    Add an analysis document to the database.
+    
+    Args:
+        req: An Analysis database schema.
+    """
+    try:
+        recs = await analysis_model.create_analysis(analysis=req)
+        req.id = str(recs)
+        return req
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@analytics_router.get(
+    "/users/{user_id}/analysis/competitor/{limit}/{skip}",
+    response_model=List[Analysis],
+    status_code=status.HTTP_200_OK
+)
+async def get_competitor_analysis(
+    user_id: str,
+    limit: int = Path(..., ge=1, le=100, description="Maximum number of competitor analyses to return."),
+    skip: int = Path(..., ge=0, description="Number of analyses to skip for pagination."),
+    analysis_model: AnalysisModel = Depends(get_analysis_model)
+):
+    """
+    Get all competitor analysis documents associated with a user ID.
+
+    Args:
+        user_id: The user ID.
+        limit: Pagination limit.
+        skip: Pagination offset.
+
+    Returns:
+        All competitor analyses associated with the user ID.
+    """
+    try:
+        recs = await analysis_model.get_competitor_analysis_by_user_id(user_id=user_id, skip=skip, limit=limit)
+        if not recs:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=ResponseSignal.COMPETITOR_ANALYSIS_NOT_FOUND.value
+            )
+        return recs
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@analytics_router.get(
+    "/users/{user_id}/analysis/interaction/{limit}/{skip}",
+    response_model=List[Analysis],
+    status_code=status.HTTP_200_OK
+)
+async def get_interaction_analysis(
+    user_id: str,
+    limit: int = Path(..., ge=1, le=100, description="Maximum number of interaction analyses to return."),
+    skip: int = Path(..., ge=0, description="Number of analyses to skip for pagination."),
+    analysis_model: AnalysisModel = Depends(get_analysis_model)
+):
+    """
+    Get all interaction analysis documents associated with a user ID.
+
+    Args:
+        user_id: The user ID.
+        limit: Pagination limit.
+        skip: Pagination offset.
+
+    Returns:
+        All interaction analyses associated with the user ID.
+    """
+    try:
+        recs = await analysis_model.get_interaction_analysis_by_user_id(user_id=user_id, skip=skip, limit=limit)
+        if not recs:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=ResponseSignal.INTERACTION_ANALYSIS_NOT_FOUND.value
+            )
         return recs
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

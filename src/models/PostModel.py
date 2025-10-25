@@ -54,7 +54,7 @@ class PostModel(BaseModel):
                     unique=index["unique"],
                 )
     
-    async def create_post(self, post: Post) -> Post:
+    async def create_post(self, post: Post) -> ObjectId:
         """
         Insert a new post document into the post collection.
 
@@ -65,8 +65,7 @@ class PostModel(BaseModel):
             Post: The inserted Post object with its MongoDB ID set.
         """
         result = await self.collection.insert_one(post.dict(by_alias=True, exclude_unset=True))
-        post.id = result.inserted_id
-        return post
+        return result.inserted_id
     
     async def get_post_by_id(self, post_id: str) -> Optional[Post]:
         """

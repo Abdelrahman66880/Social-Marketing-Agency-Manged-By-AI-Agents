@@ -1,148 +1,242 @@
 # facebook_routes.py
-from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.responses import JSONResponse
-from ..models.enums.ResponseSignal import ResponseSignal
-from ..models.db_schemas.Post import Post
-from ..models.schemas.postSchams import PageInfoSchema, PostUpdateSchema
-from src.controllers.facebook import FacebookController
-from ..models.schemas.postSchams import PostUploadSchema
+from fastapi import APIRouter, HTTPException, status, Path
+from typing import List, Dict, Any
 import requests
-import json
-import os
+from ..models.schemas.postSchams import (
+    PageInfoSchema,
+    PostUpdateSchema,
+    PostUploadSchema
+)
+from ..models.schemas.InteractionsResponse import InteractionResponse
+from src.controllers.facebook import FacebookController
 from ..helpers.config import get_Settings
 from src.models.schemas.facebookSchemas import (
     ReplyMessageRequest,
     ReplyCommentRequest,
-    FetchPageMessagesRequest,
-    FetchPageFeedInteractionsRequest,
 )
-from typing import List
-from fastapi import Query, Body
-
 
 setting_object = get_Settings()
 
 facebook_router = APIRouter(
-    prefix="/facebook", 
+    prefix="/facebook",
     tags=["Facebook"]
 )
 
-
-
-@facebook_router.post("/upload_post")
-def upload_post(page_id: str, page_Access_Token: str, post: PostUploadSchema):
+# ================================================================
+# Utility: Consistent Facebook API error handler
+# ================================================================
+def handle_facebook_error(response):
     """
-    Upload a new post to a Facebook page.
-
-    Input:
-    - page_id (str): ID of the Facebook page.
-    - post (PostSchema): Pydantic model containing post details.
-
-    Output:
-    - Reture dict contain the postid <PAGEID_POSTID>.
+    Helper to handle Facebook Graph API errors consistently.
+    Raises an HTTPException with a clear message if an error occurs.
     """
-    
-    url = f"https://graph.facebook.com/v23.0/{page_id}/feed"
+    data = response.json()
+    if "error" in data:
+        error = data["error"]
+        raise HTTPException(
+            status_code=response.status_code,
+            detail={
+                "message": error.get("message", "Facebook API Error"),
+                "type": error.get("type"),
+                "code": error.get("code"),
+                "fbtrace_id": error.get("fbtrace_id"),
+            },
+        )
+    return data
+
+
+# ================================================================
+# ROUTES
+# ================================================================
+@facebook_router.post(
+    "/pages/{page_id}/post",
+    status_code=status.HTTP_201_CREATED
+)
+def upload_post(page_id: str, page_access_token: str, post: PostUploadSchema) -> Dict[str, Any]:
+    """
+    Upload a post (text, image, or video) to a Facebook Page.
+
+    Args:
+        page_id (str): ID of the Facebook Page.
+        page_access_token (str): Valid Page access token.
+        post (PostUploadSchema): Pydantic model containing post details (message, image_url, video_url).
+
+    Returns:
+        Dict[str, Any]: Facebook Graph API response (post ID or error message).
+    """
+
+    # Base payload for all post types
     payload = {
-        "message": "Hello from AI Agent again 🚀",
-        "access_token": page_Access_Token
+        "message": post.message,
+        "access_token": page_access_token,
     }
-    
+
+    # Determine post type
+    if post.image_url:
+        # Upload image post
+        url = f"https://graph.facebook.com/v23.0/{page_id}/photos"
+        payload["url"] = post.image_url
+
+    elif post.video_url:
+        # Upload video post
+        url = f"https://graph.facebook.com/v23.0/{page_id}/videos"
+        payload["file_url"] = post.video_url
+
+    else:
+        # Upload text-only post
+        url = f"https://graph.facebook.com/v23.0/{page_id}/feed"
+
+    # Send request
     response = requests.post(url, data=payload)
-    result = response.json()
+
+    # Handle possible API errors
+    result = handle_facebook_error(response)
     return result
 
 
-@facebook_router.get("/page_info", response_model=PageInfoSchema)
+@facebook_router.get(
+    "/pages/{page_id}/info",
+    response_model=PageInfoSchema,
+    status_code=status.HTTP_200_OK
+)
 def get_page_info(page_id: str, page_access_token: str):
+    """
+    Retrieve detailed information about a Facebook Page.
+
+    Args:
+        page_id (str): The Facebook Page ID.
+        page_access_token (str): A valid Page access token.
+
+    Returns:
+        PageInfoSchema: Page metadata (name, about, description, etc.).
+
+    Raises:
+        HTTPException: If the Facebook Graph API returns an error.
+    """
     url = f"https://graph.facebook.com/v23.0/{page_id}"
     params = {
         "fields": "id,name,about,description,category,category_list,website",
         "access_token": page_access_token
     }
-    response = requests.get(url, params=params).json()
-    if "error" in response:
-        raise HTTPException(status_code=400, detail=response["error"])
-    return response
 
-@facebook_router.post("/update_post")
+    response = requests.get(url, params=params)
+    result = handle_facebook_error(response)
+    return result
+
+
+@facebook_router.put(
+    "/pages/{page_id}/posts/{post_id}",
+    status_code=status.HTTP_200_OK
+)
 def update_post(post_id: str, page_access_token: str, update_data: PostUpdateSchema):
     """
-    Update an existing post on a Facebook page.
+    Update an existing Facebook Page post.
 
-    Input:
-    - post_id (str): ID of the post to update.
-    - page_access_token (str): Page access token with correct permissions.
-    - update_data (PostUpdateSchema): Fields to update (e.g., message, link).
+    Args:
+        post_id (str): The post ID to update.
+        page_access_token (str): Page access token with update permissions.
+        update_data (PostUpdateSchema): Fields to update (e.g., message, link).
 
-    Output:
-    - Confirmation of the update.
+    Returns:
+        Dict[str, Any]: Confirmation of the successful update.
+
+    Raises:
+        HTTPException: If Facebook Graph API returns an error.
     """
     url = f"https://graph.facebook.com/v23.0/{post_id}"
     payload = update_data.dict(exclude_unset=True)
     payload["access_token"] = page_access_token
 
     response = requests.post(url, data=payload)
-    result = response.json()
-
-    if response.status_code != 200 or not result.get("success"):
-        raise HTTPException(status_code=response.status_code, detail=result)
+    result = handle_facebook_error(response)
 
     return {
         "success": True,
-        "updated_fields": update_data.dict(exclude_unset=True)
+        "updated_fields": update_data.dict(exclude_unset=True),
+        "result": result
     }
 
 
-
-
-@facebook_router.post("/reply_for_message", status_code=status.HTTP_201_CREATED)
-async def reply_for_message(request: ReplyMessageRequest):
+@facebook_router.post(
+    "/pages/{page_id}/messages/{psid}/reply",
+    status_code=status.HTTP_201_CREATED
+)
+async def reply_for_message(page_id: str, psid: str, request: ReplyMessageRequest):
     """
-    Send a reply message to a user via Messenger Send API.
+    Send a reply message to a user through the Facebook Messenger Send API.
+
+    Args:
+        page_id (str): The Facebook Page ID.
+        psid (str): The Page-scoped user ID (PSID) of the recipient.
+        request (ReplyMessageRequest): Message content, token, and type.
+
+    Returns:
+        Dict[str, Any]: Facebook Send API response.
+
+    Raises:
+        HTTPException: If message sending fails.
     """
     result = await FacebookController.reply_to_message(
-        request.psid,
+        psid,
         request.reply_text,
-        request.page_id,
+        page_id,
         request.facebookPageAccessToken,
         request.message_type,
     )
     return result
 
-@facebook_router.post("/reply_for_comment")
-async def reply_for_comment(request: ReplyCommentRequest):
+
+@facebook_router.post(
+    "/pages/{page_id}/comments/{comment_id}/reply",
+    status_code=status.HTTP_201_CREATED
+)
+async def reply_for_comment(comment_id: str, request: ReplyCommentRequest):
     """
     Reply to a specific comment on a Facebook post.
+
+    Args:
+        comment_id (str): ID of the comment to reply to.
+        request (ReplyCommentRequest): Pydantic model with reply text and token.
+
+    Returns:
+        Dict[str, Any]: Facebook Graph API response.
+
+    Raises:
+        HTTPException: If the reply fails.
     """
     result = await FacebookController.reply_for_comment(
-        request.comment_id, request.reply, request.access_token
+        comment_id, request.reply, request.access_token
     )
     return result
 
 
-@facebook_router.get("/search_for_pages")
+@facebook_router.get(
+    "/pages/{page_id}/search",
+    status_code=status.HTTP_200_OK
+)
 def search_for_pages(
-    keywords: List[str] = Query(..., description="Comma-separated keywords, e.g. social,marketing"),
-    page_access_token: str = Query(..., description="Page access token from Graph API"),
-    limit: int = Query(5, description="Maximum number of pages per keyword")
+    keywords: List[str] = Path(..., description="List of keywords to search for pages"),
+    page_access_token: str = Path(..., description="Page access token from Graph API"),
+    limit: int = Path(..., description="Maximum number of results per keyword")
 ):
     """
-    Search for competitor Facebook pages by keyword using the Meta Graph API.
+    Search for competitor Facebook Pages by keywords.
 
-    Input:
-    - keywords (List[str]): Keywords to search with (comma-separated in query string).
-    - limit (int, optional): Maximum number of pages per keyword.
-    - page_access_token (str): Page access token with proper permissions.
+    Args:
+        keywords (List[str]): Keywords to search with.
+        page_access_token (str): Valid Page access token.
+        limit (int): Max number of results per keyword.
 
-    Output:
-    - List of matching pages with relevant metadata.
+    Returns:
+        Dict[str, Any]: List of matching pages with metadata.
+
+    Raises:
+        HTTPException: If the Facebook Graph API returns an error.
     """
-
     GRAPH_API_VERSION = "v23.0"
     url = f"https://graph.facebook.com/{GRAPH_API_VERSION}/search"
 
-    results = []
+    all_results = []
 
     for keyword in keywords:
         params = {
@@ -152,14 +246,11 @@ def search_for_pages(
             "limit": limit,
             "access_token": page_access_token
         }
+
         response = requests.get(url, params=params)
-        data = response.json()
+        data = handle_facebook_error(response)
 
-        if "error" in data:
-            raise HTTPException(status_code=response.status_code, detail=data["error"])
-
-        if "data" in data:
-            results.extend(data["data"])
+        all_results.extend(data.get("data", []))
 
     pages = [
         {
@@ -168,30 +259,31 @@ def search_for_pages(
             "category": p.get("category"),
             "link": p.get("link")
         }
-        for p in results
+        for p in all_results
     ]
 
     return {"keywords": keywords, "results": pages}
 
 
-# ======================================================================================
-# I need to check availability of chat id
-# ======================================================================================
-
-@facebook_router.get("/get_chat_history")
-def get_chat_history(page_id: str,chat_id: str,page_access_token: str):
+@facebook_router.get(
+    "/pages/{page_id}/chats/{chat_id}/messages",
+    status_code=status.HTTP_200_OK
+)
+def get_chat_history(page_id: str, chat_id: str, page_access_token: str):
     """
-    Retrieve the chat history of a specific conversation between the page and a customer.
+    Retrieve the message history of a specific chat (conversation) between the Page and a user.
 
-    Input:
-    - page_id (str): ID of the Facebook page.
-    - chat_id (str): ID of the chat thread (conversation ID).
-    - page_access_token (str): Valid page access token with 'pages_messaging' and 'pages_read_engagement' permissions.
+    Args:
+        page_id (str): Facebook Page ID.
+        chat_id (str): Chat thread (conversation) ID.
+        page_access_token (str): Valid Page access token with messaging permissions.
 
-    Output:
-    - List of messages in the conversation, formatted for AI processing.
+    Returns:
+        Dict[str, Any]: List of messages in chronological order.
+
+    Raises:
+        HTTPException: If the chat ID is invalid or Facebook API fails.
     """
-
     GRAPH_API_VERSION = setting_object.GRAPH_API_VERSION
     url = f"https://graph.facebook.com/{GRAPH_API_VERSION}/{chat_id}/messages"
     params = {
@@ -200,16 +292,8 @@ def get_chat_history(page_id: str,chat_id: str,page_access_token: str):
     }
 
     response = requests.get(url, params=params)
-    result = response.json()
+    data = handle_facebook_error(response)
 
-    # Handle API errors
-    if "error" in result:
-        raise HTTPException(
-            status_code=response.status_code,
-            detail=result["error"]
-        )
-
-    # Format messages for readability / AI input
     messages = [
         {
             "sender_id": msg["from"]["id"],
@@ -218,7 +302,7 @@ def get_chat_history(page_id: str,chat_id: str,page_access_token: str):
             "message": msg.get("message"),
             "created_time": msg["created_time"]
         }
-        for msg in result.get("data", [])
+        for msg in data.get("data", [])
     ]
 
     return {
@@ -228,24 +312,48 @@ def get_chat_history(page_id: str,chat_id: str,page_access_token: str):
     }
 
 
-# ===========================================================================================
+@facebook_router.get(
+    "/pages/{page_id}/messages",
+    status_code=status.HTTP_200_OK
+)
+async def fetch_page_messages(
+    page_id: str = Path(..., description="Facebook Page ID"),
+    access_token: str = Path(..., description="Page Access Token with `pages_messaging` permission")
+):
+    """
+    Retrieve all messages from a Page's inbox.
 
-@facebook_router.post("/fetch_page_messages")
-async def fetch_page_messages(request: FetchPageMessagesRequest):
+    Args:
+        page_id (str): Facebook Page ID.
+        access_token (str): Valid Page access token with `pages_messaging`.
+
+    Returns:
+        Dict[str, Any]: Facebook API response containing all messages.
+
+    Raises:
+        HTTPException: If fetching messages fails.
     """
-    Retrieve all messages from a page’s inbox.
-    """
-    result = await FacebookController.fetch_page_messages(
-        request.page_id, request.access_token
-    )
+    result = await FacebookController.fetch_page_messages(page_id, access_token)
     return result
-    
-@facebook_router.post("/fetch_page_feed_interactions")
-async def fetch_page_feed_interactions(request: FetchPageFeedInteractionsRequest):
+
+
+@facebook_router.get(
+    "/pages/{page_id}/posts/interactions",
+    status_code=status.HTTP_200_OK
+)
+async def fetch_page_feed_interactions(page_id: str, access_token: str):
     """
-    Retrieve all interactions (comments, reactions) across all posts on a page.
+    Retrieve all interactions (comments, reactions, etc.) across all posts on a Page.
+
+    Args:
+        page_id (str): Facebook Page ID.
+        access_token (str): Valid Page access token.
+
+    Returns:
+        Dict[str, Any]: Aggregated interactions for all posts.
+
+    Raises:
+        HTTPException: If Graph API fails.
     """
-    result = await FacebookController.fetch_page_feed_interactions(
-        request.page_id, request.access_token
-    )
+    result = await FacebookController.fetch_page_feed_interactions(page_id, access_token)
     return result

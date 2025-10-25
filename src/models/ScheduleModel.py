@@ -54,7 +54,7 @@ class ScheduleModel(BaseModel):
 
     # ---------------- CRUD ---------------- #
 
-    async def create_schedule(self, schedule: Schedule) -> Schedule:
+    async def create_schedule(self, schedule: Schedule) -> ObjectId:
         """
         Create a new schedule for a user. Generates UUIDs for nested items.
 
@@ -62,7 +62,7 @@ class ScheduleModel(BaseModel):
             schedule (Schedule): Schedule object to be inserted.
 
         Returns:
-            Schedule: The created schedule with assigned IDs and inserted MongoDB ID.
+            Schedule ID: The created schedule ID.
         """
         for post in schedule.posts:
             post.id = str(uuid4())
@@ -72,8 +72,7 @@ class ScheduleModel(BaseModel):
             date.id = str(uuid4())
 
         result = await self.collection.insert_one(schedule.model_dump(by_alias=True, exclude_unset=True))
-        schedule.id = str(result.inserted_id)
-        return schedule
+        return result.inserted_id
 
     async def get_by_user_id(self, user_id: str) -> Optional[Schedule]:
         """

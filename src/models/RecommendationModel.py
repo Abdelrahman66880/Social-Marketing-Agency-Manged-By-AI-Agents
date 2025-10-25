@@ -3,7 +3,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from pymongo import DESCENDING
 from typing import List, Optional, Dict, Any
 from src.models.db_schemas.Recommendation import Recommendation
-from src.models.enums import DBEnums
+from src.models.enums.DBEnums import DBEnums
 from src.models.BaseModel import BaseModel
 
 
@@ -66,33 +66,26 @@ class RecommendationModel(BaseModel):
         """
         rec_dict = recommendation.dict(by_alias=True, exclude_none=True)
         result = await self.collection.insert_one(rec_dict)
-        return recommendation
+        return result.inserted_id
 
-    async def get_by_user_id(self, rec_id: str) -> Optional[Recommendation]:
+    async def get_by_user_id(self, user_id: str, skip: int, limit: int) -> Optional[List[Recommendation]]:
         """
         Fetch a single recommendation by its ID.
 
         Args:
-            rec_id (str): Recommendation document ID.
+            user_id (str): user ID.
+            limit (int, optional): Maximum number to return..
+            skip (int, optional): Number to skip.
 
         Returns:
-            Optional[Recommendation]: Recommendation object if found, otherwise None.
+            Optional[List[Recommendation]]: Recommendation List if found, otherwise None.
         """
-        doc = await self.collection.find_one({"_id": ObjectId(rec_id)})
-        return Recommendation(**doc) if doc else None
+        cursor = self.collection.find({"user_id": user_id}).skip(skip).limit(limit)
+        recommendations = []
+        async for doc in cursor:
+            recommendations.append(Recommendation(**doc))
+        return recommendations
 
-    async def get_user_recommendations(self, user_id: str) -> List[Recommendation]:
-        """
-        Fetch all recommendations for a specific user, sorted by creation date (newest first).
-
-        Args:
-            user_id (str): User's ObjectId as a string.
-
-        Returns:
-            List[Recommendation]: List of Recommendation objects.
-        """
-        cursor = self.collection.find({"user_id": ObjectId(user_id)}).sort("createdAt", DESCENDING)
-        return [Recommendation(**doc) async for doc in cursor]
 
     async def update_recommendation_by_rec_id(self, rec_id: str, update_data: Dict[str, Any]) -> Dict[str, int]:
         """

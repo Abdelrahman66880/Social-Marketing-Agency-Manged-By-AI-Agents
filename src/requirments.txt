@@ -14,7 +14,7 @@ langgraph==0.6.8
 langchain==0.3.27
 pydantic[email]==2.11.9
 pyngrok==7.4.0
-python-multipart
-python-jose[cryptography]
-passlib[bcrypt]
+python-multipart == 0.0.20
+python-jose[cryptography] == 3.5.0
+passlib[bcrypt] == 1.7.4
 

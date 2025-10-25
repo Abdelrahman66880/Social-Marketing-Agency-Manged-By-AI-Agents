@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 from typing import Optional, List
 
 class PageInfoSchema(BaseModel):
@@ -16,4 +16,6 @@ class PostUpdateSchema(BaseModel):
     link: Optional[str] = None
     
 class PostUploadSchema(BaseModel):
-    message: str
+    message: Optional[str] = Field(None, description="Text content or caption for the post")
+    image_url: Optional[str] = Field(None, description="URL of the image to upload")
+    video_url: Optional[str] = Field(None, description="URL of the video to upload")

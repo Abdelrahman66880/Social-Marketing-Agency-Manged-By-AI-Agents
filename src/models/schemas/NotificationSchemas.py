@@ -6,10 +6,6 @@ class SendNotificationRequest(BaseModel):
 
     content: str = Field(..., min_length=10)
 
-class MarkReadRequest(BaseModel):
-    notification_id: str
-
-
 class MarkReadResponse(BaseModel):
-    matched_count: int
+    notification_id: str
     modified_count: int

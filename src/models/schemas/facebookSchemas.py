@@ -24,24 +24,11 @@ class FacebookReplyRequest(BaseModel):
     reply_to: Optional[dict] = None  # {"mid": "<message_id>"}
 
 class ReplyMessageRequest(BaseModel):
-    psid: str = Field(..., description="Page-Scoped ID of the user to reply to")
     reply_text: str = Field(..., description="Text content of the reply")
-    page_id: str = Field(..., description="Facebook Page ID")
     facebookPageAccessToken: str = Field(..., description="Valid Page Access Token")
     message_type: str = Field("RESPONSE", description="Messaging type (RESPONSE, UPDATE, MESSAGE_TAG)")
 
 
 class ReplyCommentRequest(BaseModel):
-    comment_id: str = Field(..., description="ID of the comment to reply to")
     reply: str = Field(..., description="Reply text")
-    access_token: str = Field(..., description="Page Access Token with `pages_manage_engagement` permission")
-
-
-class FetchPageMessagesRequest(BaseModel):
-    page_id: str = Field(..., description="Facebook Page ID")
-    access_token: str = Field(..., description="Page Access Token with `pages_messaging` permission")
-
-
-class FetchPageFeedInteractionsRequest(BaseModel):
-    page_id: str = Field(..., description="Facebook Page ID")
     access_token: str = Field(..., description="Page Access Token with `pages_manage_engagement` permission")
