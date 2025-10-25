@@ -61,7 +61,7 @@ class NotificationModel(BaseModel):
 
     # ---------------- CRUD ---------------- #
 
-    async def create_notification(self, notification: Notification) -> Notification:
+    async def create_notification(self, notification: Notification) -> ObjectId:
         """
         Insert a new notification document into the database.
 
@@ -69,12 +69,11 @@ class NotificationModel(BaseModel):
             notification (Notification): The notification object to insert.
 
         Returns:
-            Notification: The inserted notification object with its generated ID.
+            Notification ID: The inserted notification ID.
         """
         notif_dict = notification.model_dump(by_alias=True, exclude_none=True)
         result = await self.collection.insert_one(notif_dict)
-        notification.id = str(result.inserted_id)
-        return notification
+        return result.inserted_id
 
 
     async def get_by_id(self, notif_id: str) -> Optional[Notification]:
@@ -90,23 +89,25 @@ class NotificationModel(BaseModel):
         doc = await self.collection.find_one({"_id": ObjectId(notif_id)})
         return Notification(**doc) if doc else None
 
-    async def get_user_notifications(self, user_id: str, limit: int = 50) -> List[Notification]:
+    async def get_user_notifications(self, user_id: str, limit: int = 50, skip: int = 1) -> List[Notification]:
         """
         Fetch recent notifications for a specific user, sorted by newest first.
 
         Args:
             user_id (str): The ID of the user.
-            limit (int, optional): Maximum number of notifications to fetch. Defaults to 50.
+            limit (int, optional): Maximum number to return..
+            skip (int, optional): Number to skip.
 
         Returns:
             List[Notification]: A list of user notifications.
         """
-        cursor = (
-            self.collection.find({"user_id": user_id})
-            .sort("createdAt", DESCENDING)
-            .limit(limit)
-        )
-        return [Notification(**doc) async for doc in cursor]
+        cursor =self.collection.find({"user_id": user_id}).sort("createdAt", DESCENDING).skip(skip).limit(limit)
+        Notifications = []
+
+        async for doc in cursor:
+            Notifications.append(Notification(**doc))
+        
+        return Notifications
 
     async def mark_as_seen(self, notif_id: str) -> dict:
         """
