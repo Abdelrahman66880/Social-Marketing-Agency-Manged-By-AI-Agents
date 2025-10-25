@@ -8,7 +8,6 @@ from ..models.schemas.postSchams import (
     PostUploadSchema
 )
 from ..models.schemas.InteractionsResponse import InteractionResponse
-from ..controllers.analytics import AnalyticsController
 from src.controllers.facebook import FacebookController
 from ..helpers.config import get_Settings
 from src.models.schemas.facebookSchemas import (
@@ -49,63 +48,48 @@ def handle_facebook_error(response):
 # ================================================================
 # ROUTES
 # ================================================================
-
-@facebook_router.get(
-    "/pages/{page_id}/interactions",
-    response_model=InteractionResponse,
-    status_code=status.HTTP_200_OK
-)
-async def get_analysis_interaction(page_id: str, page_access_token: str) -> Dict[str, Any]:
-    """
-    Analyze user interactions (comments, reactions, shares, etc.) for a Facebook page.
-
-    Args:
-        page_id (str): The Facebook Page ID.
-        page_access_token (str): A valid Page access token.
-
-    Returns:
-        Dict[str, Any]: Aggregated interaction data for the page.
-
-    Raises:
-        HTTPException: If the analysis controller fails or Graph API returns an error.
-    """
-    try:
-        analyst = AnalyticsController()
-        result = await analyst.analyze_interaction_by_page_id(
-            page_id=page_id,
-            page_access_token=page_access_token
-        )
-        return result
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-
 @facebook_router.post(
     "/pages/{page_id}/post",
     status_code=status.HTTP_201_CREATED
 )
-def upload_post(page_id: str, page_access_token: str, post: PostUploadSchema):
+def upload_post(page_id: str, page_access_token: str, post: PostUploadSchema) -> Dict[str, Any]:
     """
-    Upload a new post to a Facebook Page.
+    Upload a post (text, image, or video) to a Facebook Page.
 
     Args:
         page_id (str): ID of the Facebook Page.
         page_access_token (str): Valid Page access token.
-        post (PostUploadSchema): Pydantic model containing post details.
+        post (PostUploadSchema): Pydantic model containing post details (message, image_url, video_url).
 
     Returns:
-        Dict[str, Any]: Facebook Graph API response including post ID.
-
-    Raises:
-        HTTPException: If Facebook Graph API returns an error.
+        Dict[str, Any]: Facebook Graph API response (post ID or error message).
     """
-    url = f"https://graph.facebook.com/v23.0/{page_id}/feed"
+
+    # Base payload for all post types
     payload = {
         "message": post.message,
-        "access_token": page_access_token
+        "access_token": page_access_token,
     }
 
+    # Determine post type
+    if post.image_url:
+        # Upload image post
+        url = f"https://graph.facebook.com/v23.0/{page_id}/photos"
+        payload["url"] = post.image_url
+
+    elif post.video_url:
+        # Upload video post
+        url = f"https://graph.facebook.com/v23.0/{page_id}/videos"
+        payload["file_url"] = post.video_url
+
+    else:
+        # Upload text-only post
+        url = f"https://graph.facebook.com/v23.0/{page_id}/feed"
+
+    # Send request
     response = requests.post(url, data=payload)
+
+    # Handle possible API errors
     result = handle_facebook_error(response)
     return result
 
