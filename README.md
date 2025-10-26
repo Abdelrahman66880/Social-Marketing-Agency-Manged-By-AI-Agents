@@ -127,3 +127,6 @@ Pull requests and issues are welcome!
 ## Contact
 
 For questions or support, please open an issue on GitHub.
+
+
+<!-- uvicorn src.main:app --reload -->
