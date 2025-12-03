@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - AI Agent</title>
+    <link rel="stylesheet" href="../static/css/style.css">
+</head>
+<body class="dashboard-body">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
+                <rect x="2" y="2" width="28" height="28" rx="8" fill="#2563EB" opacity="0.1"/>
+                <path d="M16 4V22M16 22L10 16M16 22L22 16" stroke="#2563EB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle cx="16" cy="28" r="1.5" fill="#2563EB"/>
+            </svg>
+            <span>AI Agent</span>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="#" class="nav-item active">
+                <span class="icon">📊</span>
+                <span>Dashboard</span>
+            </a>
+            <a href="#" class="nav-item">
+                <span class="icon">✍️</span>
+                <span>Create Content</span>
+            </a>
+            <a href="#" class="nav-item">
+                <span class="icon">📅</span>
+                <span>Scheduled Posts</span>
+            </a>
+            <a href="#" class="nav-item">
+                <span class="icon">📈</span>
+                <span>Analytics</span>
+            </a>
+            <a href="#" class="nav-item">
+                <span class="icon">⚙️</span>
+                <span>Settings</span>
+            </a>
+        </nav>
+        <div class="sidebar-footer">
+            <button class="btn-logout">Logout</button>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Top Bar -->
+        <div class="topbar">
+            <div class="topbar-left">
+                <h2>Dashboard</h2>
+            </div>
+            <div class="topbar-right">
+                <input type="text" placeholder="Search..." class="search-input">
+                <button class="btn-notification">🔔</button>
+                <div class="user-profile">
+                    <img src="https://via.placeholder.com/40" alt="User" class="profile-image">
+                    <span class="profile-name">John Doe</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard Content -->
+        <div class="dashboard-content">
+            <!-- Stats Grid -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-title">Total Posts</span>
+                        <span class="stat-icon">📝</span>
+                    </div>
+                    <div class="stat-value">24</div>
+                    <div class="stat-change positive">+5 this month</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-title">Engagement Rate</span>
+                        <span class="stat-icon">💬</span>
+                    </div>
+                    <div class="stat-value">12.3%</div>
+                    <div class="stat-change positive">+2.1% increase</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-title">Followers</span>
+                        <span class="stat-icon">👥</span>
+                    </div>
+                    <div class="stat-value">5,234</div>
+                    <div class="stat-change positive">+342 new</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-title">Click-Through Rate</span>
+                        <span class="stat-icon">🎯</span>
+                    </div>
+                    <div class="stat-value">8.7%</div>
+                    <div class="stat-change positive">+1.2% increase</div>
+                </div>
+            </div>
+
+            <!-- Content Grid -->
+            <div class="content-grid">
+                <!-- Recent Posts -->
+                <section class="card">
+                    <div class="card-header">
+                        <h3>Recent Posts</h3>
+                        <a href="#" class="btn-secondary">View All</a>
+                    </div>
+                    <div class="posts-list">
+                        <div class="post-item">
+                            <div class="post-content">
+                                <p class="post-text">Check out our latest product launch! 🚀 #Innovation #TechStartup</p>
+                                <span class="post-date">2 hours ago</span>
+                            </div>
+                            <div class="post-stats">
+                                <span>👍 234</span>
+                                <span>💬 45</span>
+                                <span>↗️ 12</span>
+                            </div>
+                        </div>
+
+                        <div class="post-item">
+                            <div class="post-content">
+                                <p class="post-text">Join our webinar next Thursday to learn advanced marketing strategies.</p>
+                                <span class="post-date">1 day ago</span>
+                            </div>
+                            <div class="post-stats">
+                                <span>👍 456</span>
+                                <span>💬 89</span>
+                                <span>↗️ 34</span>
+                            </div>
+                        </div>
+
+                        <div class="post-item">
+                            <div class="post-content">
+                                <p class="post-text">Our AI agents are now handling 1000+ campaigns daily! 🎉</p>
+                                <span class="post-date">3 days ago</span>
+                            </div>
+                            <div class="post-stats">
+                                <span>👍 789</span>
+                                <span>💬 123</span>
+                                <span>↗️ 56</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Scheduled Posts -->
+                <section class="card">
+                    <div class="card-header">
+                        <h3>Scheduled Posts</h3>
+                        <a href="#" class="btn-secondary">+ Schedule New</a>
+                    </div>
+                    <div class="scheduled-list">
+                        <div class="scheduled-item">
+                            <div class="scheduled-time">
+                                <div class="time-badge">Today</div>
+                                <span class="time-text">2:30 PM</span>
+                            </div>
+                            <p class="scheduled-text">Learn how to increase your engagement rate...</p>
+                        </div>
+
+                        <div class="scheduled-item">
+                            <div class="scheduled-time">
+                                <div class="time-badge">Tomorrow</div>
+                                <span class="time-text">10:00 AM</span>
+                            </div>
+                            <p class="scheduled-text">Exclusive offer for our loyal followers...</p>
+                        </div>
+
+                        <div class="scheduled-item">
+                            <div class="scheduled-time">
+                                <div class="time-badge">Dec 5</div>
+                                <span class="time-text">6:00 PM</span>
+                            </div>
+                            <p class="scheduled-text">New feature announcement coming soon!</p>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Performance Chart -->
+            <section class="card">
+                <div class="card-header">
+                    <h3>Performance Overview</h3>
+                    <select class="select-filter">
+                        <option>Last 7 days</option>
+                        <option>Last 30 days</option>
+                        <option>Last 90 days</option>
+                    </select>
+                </div>
+                <div class="chart-placeholder">
+                    <div class="chart-bars">
+                        <div class="chart-bar" style="height: 60%"></div>
+                        <div class="chart-bar" style="height: 75%"></div>
+                        <div class="chart-bar" style="height: 45%"></div>
+                        <div class="chart-bar" style="height: 85%"></div>
+                        <div class="chart-bar" style="height: 70%"></div>
+                        <div class="chart-bar" style="height: 90%"></div>
+                        <div class="chart-bar" style="height: 55%"></div>
+                    </div>
+                    <p class="chart-label">Engagement trend over the last week</p>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <script src="../static/js/dashboard.js"></script>
+</body>
+</html>
