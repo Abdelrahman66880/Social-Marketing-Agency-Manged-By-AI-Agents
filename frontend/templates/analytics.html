@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Analytics - AI Agent</title>
+    <link rel="stylesheet" href="../static/css/style.css" />
+</head>
+<body class="dashboard-body">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
+                <rect x="2" y="2" width="28" height="28" rx="8" fill="#2563EB" opacity="0.1"/>
+                <path d="M16 4V22M16 22L10 16M16 22L22 16" stroke="#2563EB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle cx="16" cy="28" r="1.5" fill="#2563EB"/>
+            </svg>
+            <span>AI Agent</span>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="templates/dashboard.html" class="nav-item">
+                <span class="icon">📊</span><span>Dashboard</span>
+            </a>
+            <a href="templates/analytics.html" class="nav-item active">
+                <span class="icon">📈</span><span>Analytics</span>
+            </a>
+            <a href="templates/home.html" class="nav-item">
+                <span class="icon">✍️</span><span>Create Content</span>
+            </a>
+            <a href="templates/dashboard.html" class="nav-item">
+                <span class="icon">📅</span><span>Scheduled Posts</span>
+            </a>
+            <a href="#" class="nav-item">
+                <span class="icon">⚙️</span><span>Settings</span>
+            </a>
+        </nav>
+        <div class="sidebar-footer">
+            <button class="btn-logout">Logout</button>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="topbar">
+            <div class="topbar-left">
+                <h2>Analytics</h2>
+            </div>
+            <div class="topbar-right">
+                <div id="currentUserBadge" style="font-size:13px;color:var(--gray-600);"></div>
+            </div>
+        </div>
+
+        <div class="dashboard-content" style="padding: 24px;">
+            <!-- Insights -->
+            <section id="insights" class="analytics-card">
+                <div class="card-title">Insights</div>
+                <div id="insightsContent">
+                    <p style="color:var(--gray-600)">Insights will appear here after analyses are available.</p>
+                </div>
+            </section>
+
+            <!-- Create New Analysis -->
+            <section class="analytics-card">
+                <div class="card-title">Create New Analysis</div>
+                <form id="createAnalysisForm">
+                    <div style="display:flex;gap:12px;flex-wrap:wrap;">
+                        <select id="analysisType" required style="padding:10px;border:1px solid var(--gray-200);border-radius:8px;">
+                            <option value="">Select analysis type</option>
+                            <option value="Competitor analysis">Competitor analysis</option>
+                            <option value="interaction analysis">Interaction analysis</option>
+                        </select>
+                    </div>
+                    <div style="margin-top:12px;">
+                        <textarea id="analysisContent" rows="4" placeholder="Optional prompt / content for AI (leave empty to let AI generate)" style="width:100%;padding:12px;border:1px solid var(--gray-200);border-radius:8px;"></textarea>
+                    </div>
+                    <div style="margin-top:12px;display:flex;gap:12px;">
+                        <button type="submit" class="btn btn-primary">Create Analysis</button>
+                        <button id="clearForm" type="button" class="btn btn-secondary">Clear</button>
+                    </div>
+                    <p id="formMessage" style="margin-top:8px;color:var(--gray-600)"></p>
+                </form>
+            </section>
+
+            <!-- Competitor Analyses -->
+            <section id="competitorAnalyses" class="analytics-card">
+                <div class="card-title">Competitor Analyses</div>
+                <div id="competitorList">
+                    <p style="color:var(--gray-600)">No competitor analyses loaded yet.</p>
+                </div>
+                <div style="margin-top:12px;">
+                    <button id="loadMoreCompetitor" class="btn btn-outline">Load More Competitor</button>
+                </div>
+            </section>
+
+            <!-- Interaction Analyses -->
+            <section id="interactionAnalyses" class="analytics-card">
+                <div class="card-title">Interaction Analyses</div>
+                <div id="interactionList">
+                    <p style="color:var(--gray-600)">No interaction analyses loaded yet.</p>
+                </div>
+                <div style="margin-top:12px;">
+                    <button id="loadMoreInteraction" class="btn btn-outline">Load More Interaction</button>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <script src="../static/js/analytics.js"></script>
+</body>
+</html>
