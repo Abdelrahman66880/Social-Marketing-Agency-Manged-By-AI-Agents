@@ -236,63 +236,6 @@ async def reply_for_comment(comment_id: str, request: ReplyCommentRequest):
     return result
 
 
-@facebook_router.post(
-    "/pages/{page_id}/search",
-    status_code=status.HTTP_200_OK
-)
-def search_for_pages(
-    page_id: str,
-    keywords: List[str],
-    user_access_token: str,
-    limit: int
-):
-    """
-    Search for competitor Facebook Pages by keywords.
-
-    Args:
-        page_id (str): Facebook Page ID.
-        keywords (List[str]): Keywords to search with.
-        user_access_token (str): Valid USER access token.
-        limit (int): Max number of results per keyword.
-
-    Returns:
-        Dict[str, Any]: List of matching pages with metadata.
-
-    Raises:
-        HTTPException: If the Facebook Graph API returns an error.
-    """
-    GRAPH_API_VERSION = "v23.0"
-    url = f"https://graph.facebook.com/{GRAPH_API_VERSION}/search"
-
-    all_results = []
-
-    for keyword in keywords:
-        params = {
-            "type": "page",
-            "q": keyword,
-            "fields": "id,name,category,link",
-            "limit": limit,
-            "access_token": user_access_token
-        }
-
-        response = requests.get(url, params=params)
-        data = handle_facebook_error(response)
-
-        all_results.extend(data.get("data", []))
-
-    pages = [
-        {
-            "id": p.get("id"),
-            "name": p.get("name"),
-            "category": p.get("category"),
-            "link": p.get("link")
-        }
-        for p in all_results
-    ]
-
-    return {"keywords": keywords, "results": pages}
-
-
 @facebook_router.get(
     "/pages/{page_id}/chats/{chat_id}/messages",
     status_code=status.HTTP_200_OK
