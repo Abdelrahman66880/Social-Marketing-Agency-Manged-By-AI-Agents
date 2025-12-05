@@ -13,13 +13,13 @@ def setup_logger():
 
     # CONSOLE HANDLER (always present)
     console_handler = LogtailHandler(source_token="Nrpmoa8MJeRg3gh7Zdv2fH21")
-    stream_handler = logging.StreamHandler(sys.stdout)
+    File_handler = logging.FileHandler("logs/request.log")
 
     #set the format of the handler
     console_handler.setFormatter(formatter)
-    stream_handler.setFormatter(formatter)
+    File_handler.setFormatter(formatter)
     # add to handlers
-    logger.handlers = [console_handler, stream_handler]
+    logger.handlers = [console_handler, File_handler]
 
     #set logger level
     logger.setLevel(logging.INFO)
