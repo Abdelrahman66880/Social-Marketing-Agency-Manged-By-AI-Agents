@@ -11,10 +11,6 @@ class PageInfoSchema(BaseModel):
     website: Optional[str] = None
     category_list: Optional[List[dict]] = None
 
-class PostUpdateSchema(BaseModel):
-    message: Optional[str] = None
-    link: Optional[str] = None
-    
 class PostUploadSchema(BaseModel):
     message: Optional[str] = Field(None, description="Text content or caption for the post")
     image_url: Optional[str] = Field(None, description="URL of the image to upload")
