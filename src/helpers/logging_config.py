@@ -12,14 +12,12 @@ def setup_logger():
     )
 
     # CONSOLE HANDLER (always present)
-    console_handler = LogtailHandler(source_token="Nrpmoa8MJeRg3gh7Zdv2fH21")
     File_handler = logging.FileHandler("logs/request.log")
 
     #set the format of the handler
-    console_handler.setFormatter(formatter)
     File_handler.setFormatter(formatter)
     # add to handlers
-    logger.handlers = [console_handler, File_handler]
+    logger.handlers = [File_handler]
 
     #set logger level
     logger.setLevel(logging.INFO)
