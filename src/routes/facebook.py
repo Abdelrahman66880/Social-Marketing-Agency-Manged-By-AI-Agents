@@ -4,7 +4,6 @@ from typing import List, Dict, Any
 import requests
 from ..models.schemas.postSchams import (
     PageInfoSchema,
-    PostUpdateSchema,
     PostUploadSchema
 )
 from ..models.schemas.InteractionsResponse import InteractionResponse
@@ -123,39 +122,66 @@ def get_page_info(page_id: str, page_access_token: str):
     result = handle_facebook_error(response)
     return result
 
-
 @facebook_router.put(
     "/pages/{page_id}/posts/{post_id}",
     status_code=status.HTTP_200_OK
 )
-def update_post(post_id: str, page_access_token: str, update_data: PostUpdateSchema):
+def update_post(page_id: str, post_id: str, page_access_token: str, message: str):
     """
-    Update an existing Facebook Page post.
-
-    Args:
-        post_id (str): The post ID to update.
-        page_access_token (str): Page access token with update permissions.
-        update_data (PostUpdateSchema): Fields to update (e.g., message, link).
-
-    Returns:
-        Dict[str, Any]: Confirmation of the successful update.
-
-    Raises:
-        HTTPException: If Facebook Graph API returns an error.
+    Update ONLY the message of an existing Facebook Page post.
+    Facebook does NOT allow updating link, media, or attachments.
     """
+
     url = f"https://graph.facebook.com/v23.0/{post_id}"
-    payload = update_data.dict(exclude_unset=True)
-    payload["access_token"] = page_access_token
+
+    # Facebook allows ONLY the 'message' field to be updated
+    payload = {
+        "message": message,
+        "access_token": page_access_token,
+    }
 
     response = requests.post(url, data=payload)
     result = handle_facebook_error(response)
 
     return {
         "success": True,
-        "updated_fields": update_data.dict(exclude_unset=True),
+        "updated_fields": {"message": message},
         "result": result
     }
 
+@facebook_router.delete(
+    "/pages/{page_id}/posts/{post_id}",
+    status_code=status.HTTP_200_OK
+)
+def delete_post(page_id: str, post_id: str, page_access_token: str):
+    """
+    Delete a Facebook Page post.
+
+    Args:
+        page_id (str): Facebook Page ID.
+        post_id (str): Post ID to delete.
+        page_access_token (str): Page Access Token with `pages_manage_posts`.
+
+    Returns:
+        Dict[str, Any]: Success status.
+    """
+
+    # Ensure full post ID format
+    if "_" not in post_id:
+        post_id = f"{page_id}_{post_id}"
+
+    url = f"https://graph.facebook.com/v23.0/{post_id}"
+    params = {
+        "access_token": page_access_token
+    }
+
+    response = requests.delete(url, params=params)
+    result = handle_facebook_error(response)
+
+    return {
+        "success": result.get("success", True),
+        "post_id": post_id
+    }
 
 @facebook_router.post(
     "/pages/{page_id}/messages/{psid}/reply",
@@ -210,21 +236,23 @@ async def reply_for_comment(comment_id: str, request: ReplyCommentRequest):
     return result
 
 
-@facebook_router.get(
+@facebook_router.post(
     "/pages/{page_id}/search",
     status_code=status.HTTP_200_OK
 )
 def search_for_pages(
-    keywords: List[str] = Path(..., description="List of keywords to search for pages"),
-    page_access_token: str = Path(..., description="Page access token from Graph API"),
-    limit: int = Path(..., description="Maximum number of results per keyword")
+    page_id: str,
+    keywords: List[str],
+    user_access_token: str,
+    limit: int
 ):
     """
     Search for competitor Facebook Pages by keywords.
 
     Args:
+        page_id (str): Facebook Page ID.
         keywords (List[str]): Keywords to search with.
-        page_access_token (str): Valid Page access token.
+        user_access_token (str): Valid USER access token.
         limit (int): Max number of results per keyword.
 
     Returns:
@@ -244,7 +272,7 @@ def search_for_pages(
             "q": keyword,
             "fields": "id,name,category,link",
             "limit": limit,
-            "access_token": page_access_token
+            "access_token": user_access_token
         }
 
         response = requests.get(url, params=params)
@@ -317,9 +345,9 @@ def get_chat_history(page_id: str, chat_id: str, page_access_token: str):
     status_code=status.HTTP_200_OK
 )
 async def fetch_page_messages(
+    access_token: str,
     page_id: str = Path(..., description="Facebook Page ID"),
-    access_token: str = Path(..., description="Page Access Token with `pages_messaging` permission")
-):
+ ):
     """
     Retrieve all messages from a Page's inbox.
 
