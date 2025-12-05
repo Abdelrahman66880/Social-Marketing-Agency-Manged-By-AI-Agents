@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     SECRET_KEY: str
     ALGORITHM: str
     ACCESS_TOKEN_EXPIRE_DAYS: int
+    BETTERSTACK_SOURCE_TOKEN: str
 
     class Config:
         env_file = os.path.join(BASE_DIR, ".env")  # src/.env

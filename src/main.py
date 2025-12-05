@@ -1,10 +1,20 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 from src.routes import drafts
 from src.routes import facebook, webhook, notification, schedule, analytics, auth
 from src.helpers.config import get_Settings
+from src.helpers.logging_config import setup_logger
+from src.middleware.request_logger import log_requests
+
+
+get_Settings()
+setup_logger()
+
+
 app = FastAPI()
+
+app.middleware("http")(log_requests)
 
 app.add_middleware(
     CORSMiddleware,

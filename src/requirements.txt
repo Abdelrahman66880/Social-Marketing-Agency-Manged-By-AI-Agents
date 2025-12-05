@@ -21,3 +21,4 @@ python-multipart
 passlib[bcrypt]
 python-jose[cryptography]
 jinja2
+logtail-python
