@@ -1,0 +1,32 @@
+version: "3.8"
+
+services:
+  mongo:
+    image: mongo:6.0
+    container_name: mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    restart: always
+
+  app:
+    build: .
+    container_name: fastapi_app
+    command: uvicorn src.main:app --host 0.0.0.0 --reload
+    ports:
+      - "8000:8000"
+    depends_on:
+      - mongo
+    environment:
+      - MONGODB_URL=mongodb://mongo:27017
+      - MONGODB_DATABASE=social_marketing
+      - SECRET_KEY=
+      - ALGORITHM=HS256
+      - ACCESS_TOKEN_EXPIRE_DAYS=43200
+    volumes:
+      - .:/app
+    restart: always
+
+volumes:
+  mongo_data:
