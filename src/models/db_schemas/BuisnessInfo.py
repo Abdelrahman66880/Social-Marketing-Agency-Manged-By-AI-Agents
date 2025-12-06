@@ -30,6 +30,9 @@ class BuisnessInfo(BaseModel):
 
     businessKeyWords: List[str] = []
 
+    facebook_page_id: Optional[str] = None
+    facebook_page_access_token: Optional[str] = None
+
     user_id: ObjectId
 
     description: str = Field(
@@ -53,6 +56,12 @@ class BuisnessInfo(BaseModel):
                 "key": [("user_id", 1)],
                 "name": "user_index",
                 "unique": True,
+            },
+            {
+                "key": [("facebook_page_id", 1)],
+                "name": "facebook_page_id_index",
+                "unique": True,
+                "sparse": True,
             },
         ]
 

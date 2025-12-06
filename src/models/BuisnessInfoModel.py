@@ -95,6 +95,19 @@ class BusinessInfoModel(BaseModel):
         result = await self.collection.find_one({"user_id": ObjectId(user_id)})
         return BuisnessInfo(**result) if result else None
 
+    async def get_by_page_id(self, page_id: str) -> Optional[BuisnessInfo]:
+        """
+        Fetch a BusinessInfo document by facebook_page_id.
+
+        Args:
+            page_id (str): The Facebook Page ID.
+
+        Returns:
+            Optional[BuisnessInfo]: The BusinessInfo object if found, otherwise None.
+        """
+        result = await self.collection.find_one({"facebook_page_id": page_id})
+        return BuisnessInfo(**result) if result else None
+
     async def update_business_info(self, user_id: str, update_data: dict) -> dict:
         """
         Update fields of a BusinessInfo document for a user.
