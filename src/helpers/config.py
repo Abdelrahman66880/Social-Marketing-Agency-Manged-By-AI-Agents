@@ -15,6 +15,8 @@ class Settings(BaseSettings):
     SECRET_KEY: str
     ALGORITHM: str
     ACCESS_TOKEN_EXPIRE_DAYS: int
+    FB_APP_ID: str
+    FB_APP_SECRET: str
 
     class Config:
         env_file = os.path.join(BASE_DIR, ".env")  # src/.env
