@@ -1,5 +1,4 @@
-# business_info_model.py
-from typing import Optional, List, Any
+from typing import Optional, List, Any, Dict
 from bson import ObjectId
 from src.models.BaseModel import BaseModel
 from src.models.db_schemas import BuisnessInfo
@@ -66,7 +65,7 @@ class BusinessInfoModel(BaseModel):
 
     # ---------------- CRUD ---------------- #
 
-    async def create_business_info(self, business_info: BuisnessInfo) -> BuisnessInfo:
+    async def create_business_info(self, business_info: BuisnessInfo) -> ObjectId:
         """
         Insert a new BusinessInfo document into the collection.
 
@@ -74,13 +73,12 @@ class BusinessInfoModel(BaseModel):
             business_info (BuisnessInfo): The BusinessInfo object to insert.
 
         Returns:
-            BuisnessInfo: The inserted object with its MongoDB ID set.
+            ObjectId: The inserted document ID.
         """
         result = await self.collection.insert_one(
-            business_info.dict(by_alias=True, exclude_unset=True)
+            business_info.model_dump(by_alias=True, exclude_unset=True)
         )
-        business_info.id = result.inserted_id
-        return business_info
+        return result.inserted_id
 
     async def get_by_user_id(self, user_id: str) -> Optional[BuisnessInfo]:
         """
@@ -92,7 +90,9 @@ class BusinessInfoModel(BaseModel):
         Returns:
             Optional[BuisnessInfo]: The BusinessInfo object if found, otherwise None.
         """
-        result = await self.collection.find_one({"user_id": ObjectId(user_id)})
+        # Search by both ObjectId (legacy) and string (new standard) to be safe
+        query = {"$or": [{"user_id": ObjectId(user_id)}, {"user_id": user_id}]}
+        result = await self.collection.find_one(query)
         return BuisnessInfo(**result) if result else None
 
     async def get_by_page_id(self, page_id: str) -> Optional[BuisnessInfo]:
@@ -107,12 +107,46 @@ class BusinessInfoModel(BaseModel):
         """
         result = await self.collection.find_one({"facebook_page_id": page_id})
         return BuisnessInfo(**result) if result else None
+    
+    async def replace_business_info(self, user_id: str, new_info: BuisnessInfo) -> Dict[str, Any]:
+        """
+        Replace (or create) the business info for a user.
+        
+        Args:
+            user_id (str): The user's ID.
+            new_info (BuisnessInfo): The new business info object.
+            
+        Returns:
+            dict: {"matched_count": int, "modified_count": int, "upserted_id": Any}
+        """
+        # Ensure user_id matches
+        new_info.user_id = user_id
+        
+        existing = await self.get_by_user_id(user_id)
+        
+        doc = new_info.model_dump(by_alias=True, exclude_unset=True)
+        
+        if existing:
+            # Preserve the _id of the existing document
+            doc["_id"] = existing.id
+            if not doc.get("_id"):
+                 pass
+
+            # We use the _id from existing to target the replacement exactly
+            result = await self.collection.replace_one(
+                {"_id": ObjectId(existing.id)}, # PyObjectId is str, cast to ObjectId for DB
+                doc
+            )
+            return {"matched_count": result.matched_count, "modified_count": result.modified_count}
+        else:
+            # Create new
+            result = await self.collection.insert_one(doc)
+            return {"matched_count": 0, "modified_count": 0, "upserted_id": result.inserted_id}
+
 
     async def update_business_info(self, user_id: str, update_data: dict) -> dict:
         """
         Update fields of a BusinessInfo document for a user.
-
-        Supports partial updates; pass only the fields you want changed.
 
         Args:
             user_id (str): The string representation of the user's ObjectId.
@@ -121,8 +155,10 @@ class BusinessInfoModel(BaseModel):
         Returns:
             dict: Contains 'matched_count' and 'modified_count'.
         """
+        query = {"$or": [{"user_id": ObjectId(user_id)}, {"user_id": user_id}]}
+        
         result = await self.collection.update_one(
-            {"user_id": ObjectId(user_id)}, {"$set": update_data}
+            query, {"$set": update_data}
         )
         return {
             "matched_count": result.matched_count,
@@ -131,15 +167,16 @@ class BusinessInfoModel(BaseModel):
 
     async def delete_by_user_id(self, user_id: str) -> dict:
         """
-        Delete BusinessInfo documents for a given user_id (cascade delete).
+        Delete BusinessInfo documents for a given user_id.
 
         Args:
             user_id (str): The string representation of the user's ObjectId.
 
         Returns:
-            dict: Contains 'deleted_count' indicating the number of deleted docs.
+            dict: Contains 'deleted_count'.
         """
-        result = await self.collection.delete_many({"user_id": ObjectId(user_id)})
+        query = {"$or": [{"user_id": ObjectId(user_id)}, {"user_id": user_id}]}
+        result = await self.collection.delete_many(query)
         return {"deleted_count": result.deleted_count}
 
     # ---------------- Queries ---------------- #
@@ -223,8 +260,9 @@ class BusinessInfoModel(BaseModel):
         Returns:
             bool: True if exists, False otherwise.
         """
+        query = {"$or": [{"user_id": ObjectId(user_id)}, {"user_id": user_id}]}
         result = await self.collection.find_one(
-            {"user_id": ObjectId(user_id)}, {"_id": 1}
+            query, {"_id": 1}
         )
         return result is not None
 
@@ -245,8 +283,9 @@ class BusinessInfoModel(BaseModel):
         Returns:
             dict: Contains 'matched_count' and 'modified_count'.
         """
+        query = {"$or": [{"user_id": ObjectId(user_id)}, {"user_id": user_id}]}
         result = await self.collection.update_one(
-            {"user_id": ObjectId(user_id)}, {"$addToSet": {field_name: value}}
+            query, {"$addToSet": {field_name: value}}
         )
         return {
             "matched_count": result.matched_count,

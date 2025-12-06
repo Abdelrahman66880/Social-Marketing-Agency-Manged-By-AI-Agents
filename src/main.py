@@ -2,7 +2,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 from src.routes import drafts
-from src.routes import facebook, webhook, notification, schedule, analytics, auth
+from src.routes import facebook, webhook, notification, schedule, analytics, auth, business_info
 from src.helpers.config import get_Settings
 from src.helpers.logging_config import setup_logger
 from src.middleware.request_logger import log_requests
@@ -34,6 +34,8 @@ async def startup_db_client():
 async def shutdown_db_client():
     app.mongo_conn.close()
 
+app.include_router(auth.auth_router)
+app.include_router(business_info.business_info_router)
 app.include_router(facebook.facebook_router)
 app.include_router(drafts.draft_router)
 app.include_router(webhook.webhook_router)
