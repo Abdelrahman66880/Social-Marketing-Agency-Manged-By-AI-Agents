@@ -40,6 +40,8 @@ async def startup_db_client():
 async def shutdown_db_client():
     app.mongo_conn.close()
 
+app.include_router(auth.auth_router)
+app.include_router(business_info.business_info_router)
 app.include_router(facebook.facebook_router)
 app.include_router(drafts.draft_router)
 app.include_router(webhook.webhook_router)

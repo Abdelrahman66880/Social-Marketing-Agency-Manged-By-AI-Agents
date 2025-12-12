@@ -24,3 +24,9 @@ class ResponseSignal(Enum):
     RECOMMENDATION_NOT_FOUND = "Recommendation not found"
     COMPETITOR_ANALYSIS_NOT_FOUND = "Competitor analysis not found"
     INTERACTION_ANALYSIS_NOT_FOUND = "Interaction analysis not found"
+
+    BUSINESS_INFO_CREATED = "Business Info created successfully"
+    BUSINESS_INFO_UPDATED = "Business Info updated successfully"
+    BUSINESS_INFO_NOT_FOUND = "Business Info not found"
+    BUSINESS_INFO_ALREADY_EXISTS = "Business Info already exists"
+    FACEBOOK_CREDENTIALS_UPDATED = "Facebook credentials updated successfully"

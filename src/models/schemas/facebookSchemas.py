@@ -25,10 +25,8 @@ class FacebookReplyRequest(BaseModel):
 
 class ReplyMessageRequest(BaseModel):
     reply_text: str = Field(..., description="Text content of the reply")
-    facebookPageAccessToken: str = Field(..., description="Valid Page Access Token")
     message_type: str = Field("RESPONSE", description="Messaging type (RESPONSE, UPDATE, MESSAGE_TAG)")
 
 
 class ReplyCommentRequest(BaseModel):
     reply: str = Field(..., description="Reply text")
-    access_token: str = Field(..., description="Page Access Token with `pages_manage_engagement` permission")

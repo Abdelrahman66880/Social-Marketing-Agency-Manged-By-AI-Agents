@@ -9,8 +9,9 @@ class Settings(BaseSettings):
     MONGODB_URL: str
     MONGODB_DATABASE: str
     GRAPH_API_VERSION: str
-    PAGE_ACCESS_TOKEN: str
-    PAGE_ID: str
+    FACEBOOK_APP_ID: str
+    FACEBOOK_APP_SECRET: str
+    ENCRYPTION_KEY: str
     WEB_HOOK_VERIFY_TOKEN: str
     SECRET_KEY: str
     ALGORITHM: str
@@ -23,4 +24,3 @@ class Settings(BaseSettings):
 
 def get_Settings():
     return Settings()
-
