@@ -113,27 +113,6 @@ async def exchange_token(
 # ================================================================
 # ROUTES
 # ================================================================
-@facebook_router.post(
-    "/pages/{page_id}/post",
-    status_code=status.HTTP_201_CREATED
-)
-async def upload_post(
-    request: Request,
-    page_id: str, 
-    post: PostUploadSchema,
-    page_access_token: str = None
-) -> Dict[str, Any]:
-    """
-    Upload a post (text, image, or video) to a Facebook Page.
-
-    Args:
-        page_id (str): ID of the Facebook Page.
-        post (PostUploadSchema): Pydantic model containing post details.
-        page_access_token (str, optional): Valid Page access token. If None, retrieves from DB.
-
-    Returns:
-        Dict[str, Any]: Facebook Graph API response (post ID or error message).
-    """
     
 @facebook_router.post(
     "/pages/{page_id}/post",
@@ -143,7 +122,6 @@ async def upload_post(
     request: Request,
     page_id: str, 
     post: PostUploadSchema,
-    page_access_token: str = None
 ) -> Dict[str, Any]:
     """
     Upload a post (text, image, or video) to a Facebook Page.
@@ -151,14 +129,12 @@ async def upload_post(
     Args:
         page_id (str): ID of the Facebook Page.
         post (PostUploadSchema): Pydantic model containing post details.
-        page_access_token (str, optional): Valid Page access token. If None, retrieves from DB.
 
     Returns:
         Dict[str, Any]: Facebook Graph API response (post ID or error message).
     """
     
-    if not page_access_token:
-        page_access_token = await get_token_from_db(page_id, request.app.db_client)
+    page_access_token = await get_token_from_db(page_id, request.app.db_client)
 
     # Base payload for all post types
     payload = {
@@ -194,13 +170,12 @@ async def upload_post(
     response_model=PageInfoSchema,
     status_code=status.HTTP_200_OK
 )
-async def get_page_info(request: Request, page_id: str, page_access_token: str = None):
+async def get_page_info(request: Request, page_id: str):
     """
     Retrieve detailed information about a Facebook Page.
 
     Args:
         page_id (str): The Facebook Page ID.
-        page_access_token (str, optional): A valid Page access token. If None, retrieved from DB.
 
     Returns:
         PageInfoSchema: Page metadata (name, about, description, etc.).
@@ -208,8 +183,7 @@ async def get_page_info(request: Request, page_id: str, page_access_token: str =
     Raises:
         HTTPException: If the Facebook Graph API returns an error.
     """
-    if not page_access_token:
-        page_access_token = await get_token_from_db(page_id, request.app.db_client)
+    page_access_token = await get_token_from_db(page_id, request.app.db_client)
 
     url = f"https://graph.facebook.com/v23.0/{page_id}"
     params = {
@@ -225,22 +199,13 @@ async def get_page_info(request: Request, page_id: str, page_access_token: str =
     "/pages/{page_id}/posts/{post_id}",
     status_code=status.HTTP_200_OK
 )
-async def update_post(request: Request, page_id: str, post_id: str, message: str, page_access_token: str = None):
+async def update_post(request: Request, page_id: str, post_id: str, message: str):
     """
     Update ONLY the message of an existing Facebook Page post.
     Facebook does NOT allow updating link, media, or attachments.
     """
-@facebook_router.put(
-    "/pages/{page_id}/posts/{post_id}",
-    status_code=status.HTTP_200_OK
-)
-async def update_post(request: Request, page_id: str, post_id: str, message: str, page_access_token: str = None):
-    """
-    Update ONLY the message of an existing Facebook Page post.
-    Facebook does NOT allow updating link, media, or attachments.
-    """
-    if not page_access_token:
-        page_access_token = await get_token_from_db(page_id, request.app.db_client)
+    
+    page_access_token = await get_token_from_db(page_id, request.app.db_client)
 
     url = f"https://graph.facebook.com/v23.0/{post_id}"
 
@@ -263,20 +228,18 @@ async def update_post(request: Request, page_id: str, post_id: str, message: str
     "/pages/{page_id}/posts/{post_id}",
     status_code=status.HTTP_200_OK
 )
-async def delete_post(request: Request, page_id: str, post_id: str, page_access_token: str = None):
+async def delete_post(request: Request, page_id: str, post_id: str):
     """
     Delete a Facebook Page post.
 
     Args:
         page_id (str): Facebook Page ID.
         post_id (str): Post ID to delete.
-        page_access_token (str, optional): Page Access Token. If None, retrieves from DB.
 
     Returns:
         Dict[str, Any]: Success status.
     """
-    if not page_access_token:
-        page_access_token = await get_token_from_db(page_id, request.app.db_client)
+    page_access_token = await get_token_from_db(page_id, request.app.db_client)
 
     # Ensure full post ID format
     if "_" not in post_id:
@@ -295,6 +258,7 @@ async def delete_post(request: Request, page_id: str, post_id: str, page_access_
         "post_id": post_id
     }
 
+
 @facebook_router.post(
     "/pages/{page_id}/messages/{psid}/reply",
     status_code=status.HTTP_201_CREATED
@@ -306,7 +270,7 @@ async def reply_for_message(req: Request, page_id: str, psid: str, request: Repl
     Args:
         page_id (str): The Facebook Page ID.
         psid (str): The Page-scoped user ID (PSID) of the recipient.
-        request (ReplyMessageRequest): Message content, token, and type.
+        request (ReplyMessageRequest): Message content, and type.
 
     Returns:
         Dict[str, Any]: Facebook Send API response.
@@ -314,28 +278,8 @@ async def reply_for_message(req: Request, page_id: str, psid: str, request: Repl
     Raises:
         HTTPException: If message sending fails.
     """
-@facebook_router.post(
-    "/pages/{page_id}/messages/{psid}/reply",
-    status_code=status.HTTP_201_CREATED
-)
-async def reply_for_message(req: Request, page_id: str, psid: str, request: ReplyMessageRequest):
-    """
-    Send a reply message to a user through the Facebook Messenger Send API.
 
-    Args:
-        page_id (str): The Facebook Page ID.
-        psid (str): The Page-scoped user ID (PSID) of the recipient.
-        request (ReplyMessageRequest): Message content, token, and type.
-
-    Returns:
-        Dict[str, Any]: Facebook Send API response.
-
-    Raises:
-        HTTPException: If message sending fails.
-    """
-    token = request.facebookPageAccessToken
-    if not token:
-        token = await get_token_from_db(page_id, req.app.db_client)
+    token = await get_token_from_db(page_id, req.app.db_client)
             
     result = await FacebookController.reply_to_message(
         psid,
@@ -357,7 +301,7 @@ async def reply_for_comment(req: Request, page_id: str, comment_id: str, request
 
     Args:
         comment_id (str): ID of the comment to reply to.
-        request (ReplyCommentRequest): Pydantic model with reply text and token.
+        request (ReplyCommentRequest): Pydantic model with reply text.
 
     Returns:
         Dict[str, Any]: Facebook Graph API response.
@@ -379,14 +323,13 @@ async def reply_for_comment(req: Request, page_id: str, comment_id: str, request
     "/pages/{page_id}/chats/{chat_id}/messages",
     status_code=status.HTTP_200_OK
 )
-async def get_chat_history(request: Request, page_id: str, chat_id: str, page_access_token: str = None):
+async def get_chat_history(request: Request, page_id: str, chat_id: str):
     """
     Retrieve the message history of a specific chat (conversation) between the Page and a user.
 
     Args:
         page_id (str): Facebook Page ID.
         chat_id (str): Chat thread (conversation) ID.
-        page_access_token (str, optional): Valid Page access token. If None, retrieved from DB.
 
     Returns:
         Dict[str, Any]: List of messages in chronological order.
@@ -394,27 +337,7 @@ async def get_chat_history(request: Request, page_id: str, chat_id: str, page_ac
     Raises:
         HTTPException: If the chat ID is invalid or Facebook API fails.
     """
-@facebook_router.get(
-    "/pages/{page_id}/chats/{chat_id}/messages",
-    status_code=status.HTTP_200_OK
-)
-async def get_chat_history(request: Request, page_id: str, chat_id: str, page_access_token: str = None):
-    """
-    Retrieve the message history of a specific chat (conversation) between the Page and a user.
-
-    Args:
-        page_id (str): Facebook Page ID.
-        chat_id (str): Chat thread (conversation) ID.
-        page_access_token (str, optional): Valid Page access token. If None, retrieved from DB.
-
-    Returns:
-        Dict[str, Any]: List of messages in chronological order.
-
-    Raises:
-        HTTPException: If the chat ID is invalid or Facebook API fails.
-    """
-    if not page_access_token:
-        page_access_token = await get_token_from_db(page_id, request.app.db_client)
+    page_access_token = await get_token_from_db(page_id, request.app.db_client)
 
     GRAPH_API_VERSION = setting_object.GRAPH_API_VERSION
     url = f"https://graph.facebook.com/{GRAPH_API_VERSION}/{chat_id}/messages"
@@ -451,14 +374,12 @@ async def get_chat_history(request: Request, page_id: str, chat_id: str, page_ac
 async def fetch_page_messages(
     request: Request,
     page_id: str = Path(..., description="Facebook Page ID"),
-    access_token: str = None
  ):
     """
     Retrieve all messages from a Page's inbox.
 
     Args:
         page_id (str): Facebook Page ID.
-        access_token (str, optional): Valid Page access token. If None, retrieved from DB.
 
     Returns:
         Dict[str, Any]: Facebook API response containing all messages.
@@ -466,8 +387,7 @@ async def fetch_page_messages(
     Raises:
         HTTPException: If fetching messages fails.
     """
-    if not access_token:
-        access_token = await get_token_from_db(page_id, request.app.db_client)
+    access_token = await get_token_from_db(page_id, request.app.db_client)
 
     result = await FacebookController.fetch_page_messages(page_id, access_token)
     return result
@@ -477,13 +397,12 @@ async def fetch_page_messages(
     "/pages/{page_id}/posts/interactions",
     status_code=status.HTTP_200_OK
 )
-async def fetch_page_feed_interactions(request: Request, page_id: str, access_token: str = None):
+async def fetch_page_feed_interactions(request: Request, page_id: str):
     """
     Retrieve all interactions (comments, reactions, etc.) across all posts on a Page.
 
     Args:
         page_id (str): Facebook Page ID.
-        access_token (str, optional): Valid Page access token. If None, retrieved from DB.
 
     Returns:
         Dict[str, Any]: Aggregated interactions for all posts.
@@ -491,8 +410,7 @@ async def fetch_page_feed_interactions(request: Request, page_id: str, access_to
     Raises:
         HTTPException: If Graph API fails.
     """
-    if not access_token:
-        access_token = await get_token_from_db(page_id, request.app.db_client)
+    access_token = await get_token_from_db(page_id, request.app.db_client)
 
     result = await FacebookController.fetch_page_feed_interactions(page_id, access_token)
     return result
