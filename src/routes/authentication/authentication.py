@@ -4,9 +4,10 @@ from jose import JWTError, jwt
 from datetime import datetime, timedelta
 from src.models.UserModel import UserModel
 from src.helpers.config import get_Settings
-
+from motor.motor_asyncio import AsyncIOMotorClient
+from functools import lru_cache
 setting_object = get_Settings()
-db_client = setting_object.MONGODB_URL
+
 SECRET_KEY = setting_object.SECRET_KEY   
 ALGORITHM = setting_object.ALGORITHM
 ACCESS_TOKEN_EXPIRE_MINUTES = setting_object.ACCESS_TOKEN_EXPIRE_DAYS
@@ -21,12 +22,15 @@ def create_access_token(data: dict):
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
-
+@lru_cache()
+async def get_db_client():
+    return AsyncIOMotorClient(setting_object.MONGODB_URL)
 
 async def get_current_user(
     token: str = Depends(oauth2_scheme),
-    db_client=db_client
+    db_client=Depends(get_db_client)
 ):
+    db_client = await db_client
     credentials_exception = HTTPException(
         status_code=401,
         detail="Could not validate credentials",

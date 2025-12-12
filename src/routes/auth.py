@@ -1,17 +1,14 @@
-from fastapi import FastAPI, Depends, status, HTTPException, APIRouter
-from models.UserModel import UserModel
-from jose import jwt, JWTError
-from passlib.context import CryptContext
-from helpers.config import get_Settings
-from passlib.context import CryptContext
-from models.db_schemas.User import User
-from models.enums.ResponseSignal import ResponseSignal
-from models.enums.UserEnums import AccountStatus
+from fastapi import Depends, status, HTTPException, APIRouter, Request
+from src.models.UserModel import UserModel
+from src.helpers.config import get_Settings
+from src.models.db_schemas.User import User
+from src.models.enums.ResponseSignal import ResponseSignal
+from src.models.enums.UserEnums import AccountStatus
 from fastapi.responses import JSONResponse
 import bcrypt
 from datetime import datetime, timedelta
 from fastapi.security import OAuth2PasswordRequestForm
-from src.routes.auth.authentication import create_access_token
+from src.routes.authentication import create_access_token, get_current_user
 
 auth_router = APIRouter(
     prefix="/auth",
@@ -19,7 +16,8 @@ auth_router = APIRouter(
 )
 
 @auth_router.post("/register")
-async def register_user(user_data: dict, db_client=Depends(get_Settings().MONGODB_URL)):
+async def register_user(user_data: dict, request: Request):
+    db_client = request.app.db_client
     user_model = await UserModel.create_instance(db_client=db_client)
     
     if await user_model.exists_by_email(user_data["email"]):
@@ -50,8 +48,9 @@ async def register_user(user_data: dict, db_client=Depends(get_Settings().MONGOD
 @auth_router.post("/token")
 async def login_for_access_token(
     form_data: OAuth2PasswordRequestForm = Depends(),
-    db_client=Depends(get_Settings().MONGODB_URL)
+    request: Request = None
 ):
+    db_client = request.app.db_client if request else None
     user_model = await UserModel.create_instance(db_client)
     user = await user_model.get_user_by_email(form_data.username)  # username field is actually email
     if not user:
@@ -67,3 +66,6 @@ async def login_for_access_token(
     access_token = create_access_token(data={"sub": str(user.id)})
     return {"access_token": access_token, "token_type": "bearer"}
 
+@auth_router.get("/me")
+async def read_current_user(user = Depends(get_current_user)):
+    return {"user": str(user.id)}
