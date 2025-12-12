@@ -4,6 +4,7 @@ from typing import Optional, Dict
 from src.models.BuisnessInfoModel import BusinessInfoModel
 from src.models.db_schemas.BuisnessInfo import BuisnessInfo
 from src.models.enums.ResponseSignal import ResponseSignal
+from src.helpers.encryption import EncryptionService
 
 business_info_router = APIRouter(
     prefix="/business-info",
@@ -88,6 +89,9 @@ async def create_business_info(
             }
         )
 
+    if business_info.facebook_page_access_token:
+        business_info.facebook_page_access_token = EncryptionService.encrypt(business_info.facebook_page_access_token)
+
     inserted_id = await model.create_business_info(business_info)
     
     return JSONResponse(
@@ -124,6 +128,9 @@ async def update_business_info(
     """
     # Ensure the body matches the path user_id for consistency
     business_info.user_id = user_id
+
+    if business_info.facebook_page_access_token:
+        business_info.facebook_page_access_token = EncryptionService.encrypt(business_info.facebook_page_access_token)
     
     result = await model.replace_business_info(user_id, business_info)
     
@@ -181,7 +188,7 @@ async def update_facebook_token(
         user_id,
         {
             "facebook_page_id": page_id,
-            "facebook_page_access_token": token
+            "facebook_page_access_token": EncryptionService.encrypt(token)
         }
     )
     

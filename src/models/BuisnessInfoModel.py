@@ -4,7 +4,6 @@ from src.models.BaseModel import BaseModel
 from src.models.db_schemas import BuisnessInfo
 from src.models.enums.DBEnums import DBEnums
 
-
 class BusinessInfoModel(BaseModel):
     """
     Repository layer for managing the BusinessInfo collection in MongoDB.
@@ -90,8 +89,8 @@ class BusinessInfoModel(BaseModel):
         Returns:
             Optional[BuisnessInfo]: The BusinessInfo object if found, otherwise None.
         """
-        # Search by both ObjectId (legacy) and string (new standard) to be safe
-        query = {"$or": [{"user_id": ObjectId(user_id)}, {"user_id": user_id}]}
+        query = {"user_id": user_id}
+
         result = await self.collection.find_one(query)
         return BuisnessInfo(**result) if result else None
 
@@ -128,13 +127,13 @@ class BusinessInfoModel(BaseModel):
         
         if existing:
             # Preserve the _id of the existing document
-            doc["_id"] = existing.id
+            doc["_id"] = ObjectId(existing.id)
             if not doc.get("_id"):
                  pass
 
             # We use the _id from existing to target the replacement exactly
             result = await self.collection.replace_one(
-                {"_id": ObjectId(existing.id)}, # PyObjectId is str, cast to ObjectId for DB
+                {"_id": ObjectId(existing.id)},
                 doc
             )
             return {"matched_count": result.matched_count, "modified_count": result.modified_count}
@@ -155,7 +154,10 @@ class BusinessInfoModel(BaseModel):
         Returns:
             dict: Contains 'matched_count' and 'modified_count'.
         """
-        query = {"$or": [{"user_id": ObjectId(user_id)}, {"user_id": user_id}]}
+        try:
+             query = {"$or": [{"user_id": ObjectId(user_id)}, {"user_id": user_id}]}
+        except InvalidId:
+             query = {"user_id": user_id}
         
         result = await self.collection.update_one(
             query, {"$set": update_data}
@@ -175,7 +177,11 @@ class BusinessInfoModel(BaseModel):
         Returns:
             dict: Contains 'deleted_count'.
         """
-        query = {"$or": [{"user_id": ObjectId(user_id)}, {"user_id": user_id}]}
+        try:
+             query = {"$or": [{"user_id": ObjectId(user_id)}, {"user_id": user_id}]}
+        except InvalidId:
+             query = {"user_id": user_id}
+
         result = await self.collection.delete_many(query)
         return {"deleted_count": result.deleted_count}
 
@@ -260,7 +266,10 @@ class BusinessInfoModel(BaseModel):
         Returns:
             bool: True if exists, False otherwise.
         """
-        query = {"$or": [{"user_id": ObjectId(user_id)}, {"user_id": user_id}]}
+        try:
+             query = {"$or": [{"user_id": ObjectId(user_id)}, {"user_id": user_id}]}
+        except InvalidId:
+             query = {"user_id": user_id}
         result = await self.collection.find_one(
             query, {"_id": 1}
         )
@@ -283,7 +292,10 @@ class BusinessInfoModel(BaseModel):
         Returns:
             dict: Contains 'matched_count' and 'modified_count'.
         """
-        query = {"$or": [{"user_id": ObjectId(user_id)}, {"user_id": user_id}]}
+        try:
+             query = {"$or": [{"user_id": ObjectId(user_id)}, {"user_id": user_id}]}
+        except InvalidId:
+             query = {"user_id": user_id}
         result = await self.collection.update_one(
             query, {"$addToSet": {field_name: value}}
         )
