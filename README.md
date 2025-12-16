@@ -70,22 +70,21 @@ src/
 
 2. **Install Python dependencies:**
    ```sh
-   cd src
-   pip install -r requirments.txt
+   pip install -r src/requirements.txt
    ```
 
-3. **Run the backend server:**
+3. **Run the application:**
    ```sh
-   uvicorn main:app --reload
+   uvicorn src.main:app --reload
    ```
 
-4. **(Optional) Run with Docker:**
-   ```sh
-   docker-compose up
-   ```
-
-5. **Open the dashboard:**
-   - Open `dashboard/index.html` in your browser.
+4. **Open the dashboard:**
+   - The app will run at `http://localhost:8000`
+   - It will automatically redirect to the login page.
+   - You can also optionally run with Docker:
+     ```sh
+     docker-compose up
+     ```
 
 ---
 

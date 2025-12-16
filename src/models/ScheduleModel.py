@@ -41,7 +41,7 @@ class ScheduleModel(BaseModel):
         Returns:
             None
         """
-        all_collections = await self.db_client.list_collection_names()
+        all_collections = await self.db.list_collection_names()
         if DBEnums.COLLECTION_SCHEDULE_NAME.value not in all_collections:
             self.collection = self.db[DBEnums.COLLECTION_SCHEDULE_NAME.value]
             indexes = Schedule.get_indexes()

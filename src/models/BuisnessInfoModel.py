@@ -1,5 +1,6 @@
 from typing import Optional, List, Any, Dict
 from bson import ObjectId
+from bson.errors import InvalidId
 from src.models.BaseModel import BaseModel
 from src.models.db_schemas import BuisnessInfo
 from src.models.enums.DBEnums import DBEnums
@@ -50,9 +51,9 @@ class BusinessInfoModel(BaseModel):
         - Checks if the collection exists; if not, creates it.
         - Applies indexes as defined in the BuisnessInfo schema.
         """
-        all_collections = await self.db_client.list_collection_names()
+        all_collections = await self.db.list_collection_names()
         if DBEnums.COLLECTION_BUSINESS_INFO_NAME.value not in all_collections:
-            self.collection = self.db_client[DBEnums.COLLECTION_BUSINESS_INFO_NAME.value]
+            self.collection = self.db[DBEnums.COLLECTION_BUSINESS_INFO_NAME.value]
             indexes = BuisnessInfo.get_indexes()
             for index in indexes:
                 await self.collection.create_index(

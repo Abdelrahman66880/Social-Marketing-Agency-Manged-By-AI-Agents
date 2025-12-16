@@ -48,7 +48,7 @@ class NotificationModel(BaseModel):
         Initialize the collection and ensure necessary indexes are created.
         If the collection does not exist, it is created and indexes are applied.
         """
-        all_collections = await self.db_client.list_collection_names()
+        all_collections = await self.db.list_collection_names()
         if DBEnums.COLLECTION_NOTIFICATION_NAME.value not in all_collections:
             self.collection = self.db[DBEnums.COLLECTION_NOTIFICATION_NAME.value]
             indexes = Notification.get_indexes()

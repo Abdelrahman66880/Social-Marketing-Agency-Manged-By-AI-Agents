@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Business Setup - AI Agent</title>
+    <link rel="stylesheet" href="../static/css/style.css">
+    <style>
+        body {
+            background-color: #f3f4f6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .setup-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+            padding: 40px;
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .setup-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .setup-header h1 {
+            color: #111827;
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        .setup-header p {
+            color: #6B7280;
+            font-size: 14px;
+        }
+
+        /* Tag Input Styles */
+        .tag-container {
+            border: 1px solid #E5E7EB;
+            border-radius: 12px;
+            padding: 8px;
+            background: white;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            min-height: 48px;
+            transition: all 0.2s;
+        }
+
+        .tag-container:focus-within {
+            border-color: #1877F2;
+            box-shadow: 0 0 0 4px rgba(24, 119, 242, 0.1);
+        }
+
+        .tag {
+            background: #EFF6FF;
+            color: #1D4ED8;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .tag i {
+            /* Close icon */
+            cursor: pointer;
+            font-style: normal;
+            font-size: 14px;
+            opacity: 0.6;
+        }
+
+        .tag i:hover {
+            opacity: 1;
+        }
+
+        .tag-input {
+            border: none;
+            outline: none;
+            flex: 1;
+            min-width: 120px;
+            font-size: 14px;
+            padding: 4px;
+            color: #374151;
+            background: transparent;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="setup-card">
+        <div class="setup-header">
+            <h1>Business Setup</h1>
+            <p>Tell us about your business to get started with AI marketing</p>
+        </div>
+
+        <form id="businessSetupForm">
+            <div class="form-group">
+                <label style="display:block; margin-bottom:8px; color:#374151; font-weight:500;">Business Name</label>
+                <div class="input-wrapper">
+                    <svg class="input-icon" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                        <path d="M2 14H4V10H2V14ZM8 14H10V6H8V14ZM14 14H16V2H14V14Z" stroke="#9CA3AF" stroke-width="1.5"
+                            stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                    <input type="text" placeholder="e.g. EcoTech Solutions" required class="form-input"
+                        name="businessName">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label style="display:block; margin-bottom:8px; color:#374151; font-weight:500;">Field /
+                    Industry</label>
+                <div class="input-wrapper">
+                    <svg class="input-icon" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                        <path d="M10 2L18 6V14L10 18L2 14V6L10 2Z" stroke="#9CA3AF" stroke-width="1.5"
+                            stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                    <input type="text" placeholder="e.g. Technology, Retail, Healthcare" required class="form-input"
+                        name="field">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label style="display:block; margin-bottom:8px; color:#374151; font-weight:500;">Business
+                    Description</label>
+                <div class="input-wrapper">
+                    <svg class="input-icon" width="20" height="20" viewBox="0 0 20 20" fill="none" style="top: 15px;">
+                        <path
+                            d="M4 4H16C17.1 4 18 4.9 18 6V18C18 19.1 17.1 20 16 20H4C2.9 20 2 19.1 2 18V6C2 4.9 2.9 4 4 4Z"
+                            stroke="#9CA3AF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                        <path d="M4 9H16M4 14H10" stroke="#9CA3AF" stroke-width="1.5" stroke-linecap="round"
+                            stroke-linejoin="round" />
+                    </svg>
+                    <textarea placeholder="Describe your business in detail (min 50 chars)..." required
+                        class="form-input" name="description" style="height: 120px; padding-top: 12px; resize: none;"
+                        minlength="50"></textarea>
+                </div>
+                <p style="font-size:12px; color:#6B7280; margin-top:4px;">Minimum 50 characters</p>
+            </div>
+
+            <!-- New Fields -->
+            <div class="form-group">
+                <label style="display:block; margin-bottom:8px; color:#374151; font-weight:500;">Long Term Goals</label>
+                <div class="tag-container" id="longTermGoalsContainer">
+                    <input type="text" class="tag-input" placeholder="Add a goal and press Enter..."
+                        data-target="longTermGoals">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label style="display:block; margin-bottom:8px; color:#374151; font-weight:500;">Short Term
+                    Goals</label>
+                <div class="tag-container" id="shortTermGoalsContainer">
+                    <input type="text" class="tag-input" placeholder="Add a goal and press Enter..."
+                        data-target="shortTermGoals">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label style="display:block; margin-bottom:8px; color:#374151; font-weight:500;">Target Audience</label>
+                <div class="tag-container" id="targetAudienceContainer">
+                    <input type="text" class="tag-input" placeholder="e.g. Teenagers, Tech Enthusiasts..."
+                        data-target="targetAudience">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label style="display:block; margin-bottom:8px; color:#374151; font-weight:500;">Unique Selling Points
+                    (Differentiators)</label>
+                <div class="tag-container" id="differentiatorsContainer">
+                    <input type="text" class="tag-input" placeholder="e.g. Free Shipping, 24/7 Support..."
+                        data-target="differentiators">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label style="display:block; margin-bottom:8px; color:#374151; font-weight:500;">Brand Theme /
+                    Colors</label>
+                <div class="tag-container" id="themeContainer">
+                    <input type="text" class="tag-input" placeholder="e.g. Minimalist, Blue & White..."
+                        data-target="theme">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label style="display:block; margin-bottom:8px; color:#374151; font-weight:500;">Business
+                    Keywords</label>
+                <div class="tag-container" id="businessKeyWordsContainer">
+                    <input type="text" class="tag-input" placeholder="e.g. Software, SaaS, Cloud..."
+                        data-target="businessKeyWords">
+                </div>
+            </div>
+
+            <button type="submit" class="btn-signin" style="margin-top: 20px;">
+                <span>Complete Setup</span>
+                <svg class="btn-icon" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                    <path d="M7 10H13M13 10L10 7M13 10L10 13" stroke="white" stroke-width="1.5" stroke-linecap="round"
+                        stroke-linejoin="round" />
+                </svg>
+            </button>
+        </form>
+    </div>
+
+    <script src="../static/js/business_setup.js"></script>
+    <script>
+        // Check authentication
+        if (!localStorage.getItem('accessToken')) {
+            window.location.href = 'login.html';
+        }
+    </script>
+</body>
+
+</html>
