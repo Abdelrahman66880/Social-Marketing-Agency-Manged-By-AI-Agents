@@ -9,28 +9,27 @@ from functools import lru_cache
 setting_object = get_Settings()
 
 SECRET_KEY = setting_object.SECRET_KEY   
-ALGORITHM = setting_object.ALGORITHM
-ACCESS_TOKEN_EXPIRE_MINUTES = setting_object.ACCESS_TOKEN_EXPIRE_DAYS
+ALGORITHM = setting_object.ALGORITHM or "HS256"
+ACCESS_TOKEN_EXPIRE_DAYS = setting_object.ACCESS_TOKEN_EXPIRE_DAYS
 
 # tells FastAPI where the login route is
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/token")
 
 def create_access_token(data: dict):
     to_encode = data.copy()
-    expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    expire = datetime.utcnow() + timedelta(days=ACCESS_TOKEN_EXPIRE_DAYS)
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
 @lru_cache()
-async def get_db_client():
+def get_db_client():
     return AsyncIOMotorClient(setting_object.MONGODB_URL)
 
 async def get_current_user(
     token: str = Depends(oauth2_scheme),
     db_client=Depends(get_db_client)
 ):
-    db_client = await db_client
     credentials_exception = HTTPException(
         status_code=401,
         detail="Could not validate credentials",
