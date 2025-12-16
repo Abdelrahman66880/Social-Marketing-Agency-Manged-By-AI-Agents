@@ -47,9 +47,9 @@ class UserModel(BaseModel):
         Checks if the user collection exists; if not, creates it and sets up the necessary indexes
         as defined in the User schema.
         """
-        all_collections = await self.db_client.list_collection_names()
+        all_collections = await self.db.list_collection_names()
         if DBEnums.COLLECTION_USER_NAME.value not in all_collections:
-            self.collection = self.db_client[DBEnums.COLLECTION_USER_NAME.value]
+            self.collection = self.db[DBEnums.COLLECTION_USER_NAME.value]
             indexes = User.get_indexes()
             for index in indexes:
                 await self.collection.create_index(
