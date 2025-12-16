@@ -15,12 +15,16 @@ auth_router = APIRouter(
     tags=["Auth"],
 )
 
+from src.models.schemas.AuthSchemas import UserRegisterRequest
+from src.models.BuisnessInfoModel import BusinessInfoModel
+from src.models.db_schemas.BuisnessInfo import BuisnessInfo
+
 @auth_router.post("/register")
-async def register_user(user_data: dict, request: Request):
+async def register_user(user_data: UserRegisterRequest, request: Request):
     db_client = request.app.db_client
     user_model = await UserModel.create_instance(db_client=db_client)
     
-    if await user_model.exists_by_email(user_data["email"]):
+    if await user_model.exists_by_email(user_data.email):
         return JSONResponse(
             status_code=status.HTTP_400_BAD_REQUEST,
             content={
@@ -28,19 +32,22 @@ async def register_user(user_data: dict, request: Request):
             }
         )
         
-    hashed_password = bcrypt.hashpw(user_data["password"].encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+    hashed_password = bcrypt.hashpw(user_data.password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
     
     new_user = User(
-        username=user_data["username"],
-        email=user_data["email"],
+        username=user_data.username,
+        email=user_data.email,
         hashPassword=hashed_password,
         accountStatus=AccountStatus.ACTIVE.value
     )
     
-    await user_model.create_user(user=new_user)
+    # Create User
+    created_user = await user_model.create_user(user=new_user)
+    
     return JSONResponse(
         content={
-            "signal": ResponseSignal.USER_REGISTERED_SUCCESSFULLY.value
+            "signal": ResponseSignal.USER_REGISTERED_SUCCESSFULLY.value,
+            "user_id": str(created_user.id)
         }
     )
 
@@ -69,3 +76,14 @@ async def login_for_access_token(
 @auth_router.get("/me")
 async def read_current_user(user = Depends(get_current_user)):
     return {"user": str(user.id)}
+
+@auth_router.get("/config")
+async def get_public_config():
+    """
+    Returns public configuration required by the frontend.
+    """
+    settings = get_Settings()
+    return {
+        "facebook_app_id": settings.FACEBOOK_APP_ID,
+        "api_version": settings.GRAPH_API_VERSION
+    }
