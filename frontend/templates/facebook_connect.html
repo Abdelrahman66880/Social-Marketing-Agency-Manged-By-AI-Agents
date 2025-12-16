@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connect Facebook - AI Agent</title>
+    <link rel="stylesheet" href="../static/css/style.css">
+    <style>
+        body {
+            background-color: #f3f4f6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .connect-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+            padding: 40px;
+            width: 100%;
+            max-width: 500px;
+            text-align: center;
+        }
+
+        .connect-header {
+            margin-bottom: 30px;
+        }
+
+        .connect-header h1 {
+            color: #111827;
+            font-size: 24px;
+            margin-bottom: 12px;
+        }
+
+        .connect-header p {
+            color: #6B7280;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .fb-btn {
+            background-color: #1877F2;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 24px;
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.2s;
+            width: 100%;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .fb-btn:hover {
+            background-color: #166fe5;
+            transform: translateY(-1px);
+        }
+
+        .fb-btn:disabled {
+            background-color: #93C5FD;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .fb-icon {
+            width: 24px;
+            height: 24px;
+            fill: currentColor;
+        }
+
+        .page-selection {
+            display: none;
+            margin-top: 30px;
+            text-align: left;
+        }
+
+        .page-selection.active {
+            display: block;
+        }
+
+        .page-list {
+            margin-top: 15px;
+            border: 1px solid #E5E7EB;
+            border-radius: 12px;
+            overflow: hidden;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .page-item {
+            padding: 15px;
+            border-bottom: 1px solid #E5E7EB;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: background 0.15s;
+        }
+
+        .page-item:last-child {
+            border-bottom: none;
+        }
+
+        .page-item:hover {
+            background-color: #F9FAFB;
+        }
+
+        .page-item.selected {
+            background-color: #EFF6FF;
+            border-left: 4px solid #1877F2;
+        }
+
+        .page-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #E5E7EB;
+        }
+
+        .page-name {
+            font-weight: 500;
+            color: #374151;
+        }
+
+        .step-indicator {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 40px;
+            gap: 10px;
+        }
+
+        .step {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #E5E7EB;
+        }
+
+        .step.active {
+            background: #1877F2;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="connect-card">
+        <div class="step-indicator">
+            <div class="step"></div>
+            <div class="step"></div>
+            <div class="step active"></div>
+        </div>
+
+        <div class="connect-header">
+            <h1>Connect Facebook</h1>
+            <p>Connect your Facebook account to allow the AI Agent to manage your Page posts and interactions.</p>
+        </div>
+
+        <div id="connectStep">
+            <button id="fbLoginBtn" class="fb-btn">
+                <svg class="fb-icon" viewBox="0 0 24 24">
+                    <path
+                        d="M12 2.04C6.5 2.04 2 6.53 2 12.06C2 17.06 5.66 21.21 10.44 21.96V14.96H7.9V12.06H10.44V9.85C10.44 7.34 11.93 5.96 14.15 5.96C15.21 5.96 16.12 6.04 16.12 6.04V8.51H15.01C13.77 8.51 13.38 9.27 13.38 10.05V12.06H16.15L15.71 14.96H13.38V21.96C18.16 21.21 21.82 17.06 21.82 12.06C21.82 6.53 17.32 2.04 12 2.04Z" />
+                </svg>
+                Continue with Facebook
+            </button>
+        </div>
+
+        <div id="pageSelectionStep" class="page-selection">
+            <h3 style="font-size:16px; font-weight:600; color:#374151;">Select a Page to Manage</h3>
+            <div class="page-list" id="pageList">
+                <!-- Pages will be injected here -->
+            </div>
+
+            <button id="confirmPageBtn" class="fb-btn"
+                style="background-color: #10B981; margin-top: 20px; display: none;">
+                Confirm Selection
+            </button>
+        </div>
+    </div>
+
+    <!-- Facebook SDK loaded asynchronously via JS -->
+    <script src="../static/js/facebook_connect.js"></script>
+</body>
+
+</html>
