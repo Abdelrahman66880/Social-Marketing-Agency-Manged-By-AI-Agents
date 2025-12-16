@@ -6,7 +6,7 @@ from ..models.BuisnessInfoModel import BusinessInfoModel
 from ..helpers.facebook_auth import FacebookAuthService
 from ..helpers.encryption import EncryptionService
 from ..models.db_schemas.User import User
-from ..routes.auth.authentication import get_current_user
+from ..routes.authentication.authentication import get_current_user
 from ..models.schemas.postSchams import (
     PageInfoSchema,
     PostUploadSchema
