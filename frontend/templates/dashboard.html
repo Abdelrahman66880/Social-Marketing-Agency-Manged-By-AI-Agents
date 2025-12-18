@@ -1,28 +1,31 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - AI Agent</title>
     <link rel="stylesheet" href="../static/css/style.css">
 </head>
+
 <body class="dashboard-body">
     <!-- Sidebar Navigation -->
     <aside class="sidebar">
         <div class="sidebar-header">
             <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
-                <rect x="2" y="2" width="28" height="28" rx="8" fill="#2563EB" opacity="0.1"/>
-                <path d="M16 4V22M16 22L10 16M16 22L22 16" stroke="#2563EB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                <circle cx="16" cy="28" r="1.5" fill="#2563EB"/>
+                <rect x="2" y="2" width="28" height="28" rx="8" fill="#2563EB" opacity="0.1" />
+                <path d="M16 4V22M16 22L10 16M16 22L22 16" stroke="#2563EB" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round" />
+                <circle cx="16" cy="28" r="1.5" fill="#2563EB" />
             </svg>
             <span>AI Agent</span>
         </div>
         <nav class="sidebar-nav">
-            <a href="#" class="nav-item active">
+            <a href="dashboard.html" class="nav-item active">
                 <span class="icon">📊</span>
                 <span>Dashboard</span>
             </a>
-            <a href="#" class="nav-item">
+            <a href="home.html" class="nav-item">
                 <span class="icon">✍️</span>
                 <span>Create Content</span>
             </a>
@@ -54,10 +57,7 @@
             <div class="topbar-right">
                 <input type="text" placeholder="Search..." class="search-input">
                 <button class="btn-notification">🔔</button>
-                <div class="user-profile">
-                    <img src="https://via.placeholder.com/40" alt="User" class="profile-image">
-                    <span class="profile-name">John Doe</span>
-                </div>
+                <div id="currentUserBadge" style="font-size:13px;color:var(--gray-600);"></div>
             </div>
         </div>
 
@@ -113,7 +113,8 @@
                     <div class="posts-list">
                         <div class="post-item">
                             <div class="post-content">
-                                <p class="post-text">Check out our latest product launch! 🚀 #Innovation #TechStartup</p>
+                                <p class="post-text">Check out our latest product launch! 🚀 #Innovation #TechStartup
+                                </p>
                                 <span class="post-date">2 hours ago</span>
                             </div>
                             <div class="post-stats">
@@ -125,7 +126,8 @@
 
                         <div class="post-item">
                             <div class="post-content">
-                                <p class="post-text">Join our webinar next Thursday to learn advanced marketing strategies.</p>
+                                <p class="post-text">Join our webinar next Thursday to learn advanced marketing
+                                    strategies.</p>
                                 <span class="post-date">1 day ago</span>
                             </div>
                             <div class="post-stats">
@@ -209,6 +211,8 @@
         </div>
     </main>
 
-    <script src="../static/js/dashboard.js"></script>
+    <script src="../static/js/common-header.js?v=1.1"></script>
+    <script src="../static/js/dashboard.js?v=1.1"></script>
 </body>
+
 </html>

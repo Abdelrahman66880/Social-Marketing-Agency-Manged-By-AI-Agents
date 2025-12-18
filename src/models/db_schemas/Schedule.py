@@ -43,7 +43,7 @@ class InteractionAnalysisDate(ScheduleBase):
 
 class Schedule(ScheduleBase):
     id: Optional[PyObjectId] = Field(None, alias="_id")
-    user_id: PyObjectId
+    user_id: Optional[PyObjectId] = None
     posts: List[ScheduledPost] = Field(default_factory=list)
     competitor_analysis: List[ScheduledCompetitorAnalysis] = Field(default_factory=list)
     interaction_analysis_dates: List[InteractionAnalysisDate] = Field(default_factory=list)

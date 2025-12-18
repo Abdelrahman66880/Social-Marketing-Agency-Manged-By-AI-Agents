@@ -109,20 +109,25 @@ class ScheduleModel(BaseModel):
         # Validate that no duplicates exist in the new schedule (reuses your validator)
         new_schedule = Schedule(**new_schedule.model_dump())
 
-        existing = await self.collection.find_one({"user_id": user_id}, {"_id": 1})
-        if not existing:
-            return {"matched_count": 0, "modified_count": 0, "_id": None}
-
-        # Assign the same _id so MongoDB doesn't complain
         new_doc = new_schedule.model_dump(by_alias=True, exclude_unset=True)
-        new_doc["_id"] = existing["_id"]
 
         result = await self.collection.replace_one(
             {"user_id": user_id},
-            new_doc
+            new_doc,
+            upsert=True
         )
 
-        return {"matched_count": result.matched_count, "modified_count": result.modified_count, "_id": new_doc["_id"]}
+        returned_id = result.upserted_id
+        if not returned_id:
+            # It was an update, fetch the existing _id
+            existing = await self.collection.find_one({"user_id": user_id}, {"_id": 1})
+            returned_id = existing["_id"] if existing else None
+
+        return {
+            "matched_count": result.matched_count, 
+            "modified_count": result.modified_count, 
+            "_id": returned_id
+        }
 
     async def delete_by_id(self, schedule_id: str) -> Dict[str, int]:
         """
