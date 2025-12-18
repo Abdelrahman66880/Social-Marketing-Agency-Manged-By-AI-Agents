@@ -23,15 +23,7 @@
     const currentUserBadge = document.getElementById('currentUserBadge');
     const saveMessage = document.getElementById('saveMessage');
 
-    function setCurrentUserBadge() {
-        if (USER_ID) {
-            currentUserBadge.innerHTML = `User: <strong style="color:var(--primary)">${USER_ID}</strong>`;
-        } else {
-            currentUserBadge.innerHTML = `No current user. Set <code>window.CURRENT_USER_ID</code> and reload.`;
-        }
-    }
-
-    setCurrentUserBadge();
+    // Badge is now handled by common-header.js
 
     function dateToLocalString(iso) {
         try { return new Date(iso).toLocaleString(); }
@@ -47,6 +39,7 @@
 
     // API calls
     async function fetchSchedule() {
+        USER_ID = localStorage.getItem('userId') || getUserIdFromCookie('user_id');
         if (!USER_ID) {
             console.warn('No user id');
             return null;
@@ -72,6 +65,7 @@
     }
 
     async function saveSchedule(schedule) {
+        USER_ID = localStorage.getItem('userId') || getUserIdFromCookie('user_id');
         if (!USER_ID) {
             alert('No user id set');
             return false;
@@ -382,7 +376,7 @@
     // Initial load
     async function init() {
         if (!USER_ID) {
-            const msg = '<div class="empty-state"><p>No user set. Set window.CURRENT_USER_ID and reload.</p></div>';
+            const msg = '<div class="empty-state"><p>User session not found. Please <a href="login">log in</a> again.</p></div>';
             if (postsList) postsList.innerHTML = msg;
             if (competitorList) competitorList.innerHTML = msg;
             if (interactionList) interactionList.innerHTML = msg;
@@ -401,7 +395,7 @@
     window.__schedule_set_user = function (id) {
         USER_ID = id;
         localStorage.setItem('userId', id);
-        setCurrentUserBadge();
+        if (window.updateSharedHeader) window.updateSharedHeader();
         init();
     };
 })();

@@ -8,7 +8,11 @@
         return v ? v.pop() : null;
     }
 
-    let USER_ID = window.CURRENT_USER_ID || localStorage.getItem('CURRENT_USER_ID') || getUserIdFromCookie('user_id') || null;
+    function getUserId() {
+        return localStorage.getItem('userId') || getUserIdFromCookie('user_id');
+    }
+
+    let USER_ID = window.CURRENT_USER_ID || getUserId() || null;
 
     const PAGE_LIMIT = 10;
     let skipCompetitor = 0;
@@ -19,15 +23,7 @@
     const insightsEl = document.getElementById('insightsContent');
     const currentUserBadge = document.getElementById('currentUserBadge');
 
-    function setCurrentUserBadge() {
-        if (USER_ID) {
-            currentUserBadge.innerHTML = `User: <strong style="color:var(--primary)">${USER_ID}</strong>`;
-        } else {
-            currentUserBadge.innerHTML = `No current user found. Set <code>window.CURRENT_USER_ID</code> or store it in <code>localStorage.CURRENT_USER_ID</code>.`;
-        }
-    }
-
-    setCurrentUserBadge();
+    // Badge is now handled by common-header.js
 
     function isoToLocalString(iso) {
         try { return new Date(iso).toLocaleString(); }
@@ -85,42 +81,13 @@
     }
 
     function renderInsights(competitorItems, interactionItems) {
-        const totalCompetitor = competitorItems ? competitorItems.length : 0;
-        const totalInteraction = interactionItems ? interactionItems.length : 0;
-        const total = totalCompetitor + totalInteraction;
-        const latestCompetitor = (competitorItems && competitorItems[0]) ? competitorItems[0] : null;
-        const latestInteraction = (interactionItems && interactionItems[0]) ? interactionItems[0] : null;
-
-        if (!total) {
-            insightsEl.innerHTML = '<p style="color:var(--gray-600)">No data to show insights.</p>';
-            return;
-        }
-
-        insightsEl.innerHTML = `
-            <div style="display:flex;gap:16px;flex-wrap:wrap;">
-                <div style="min-width:160px;">
-                    <div class="stat-label">Total analyses (page)</div>
-                    <div class="stat-value">${total}</div>
-                </div>
-                <div style="min-width:160px;">
-                    <div class="stat-label">Competitor (page)</div>
-                    <div class="stat-value">${totalCompetitor}</div>
-                </div>
-                <div style="min-width:160px;">
-                    <div class="stat-label">Interaction (page)</div>
-                    <div class="stat-value">${totalInteraction}</div>
-                </div>
-            </div>
-            <div style="margin-top:12px;display:flex;gap:12px;flex-wrap:wrap;">
-                ${latestCompetitor ? `<div style="min-width:280px;"><div class="card-title">Latest competitor</div><div style="padding:10px;border-radius:8px;border:1px solid var(--gray-100);background:var(--white)"><div style="display:flex;justify-content:space-between"><strong>${latestCompetitor.analysisType}</strong><span style="color:var(--gray-600)">${isoToLocalString(latestCompetitor.createdAt)}</span></div><div style="margin-top:8px;color:var(--gray-800)">${latestCompetitor.content || '(no content)'}</div></div></div>` : ''}
-                ${latestInteraction ? `<div style="min-width:280px;"><div class="card-title">Latest interaction</div><div style="padding:10px;border-radius:8px;border:1px solid var(--gray-100);background:var(--white)"><div style="display:flex;justify-content:space-between"><strong>${latestInteraction.analysisType}</strong><span style="color:var(--gray-600)">${isoToLocalString(latestInteraction.createdAt)}</span></div><div style="margin-top:8px;color:var(--gray-800)">${latestInteraction.content || '(no content)'}</div></div></div>` : ''}
-            </div>
-        `;
+        // Emptying as requested for later management
+        insightsEl.innerHTML = '<p style="color:var(--gray-600)">Insights are currently being generated. Check back soon.</p>';
     }
 
     async function loadInitial() {
+        USER_ID = getUserId(); // ensure up-to-date
         if (!USER_ID) {
-            currentUserBadge.innerHTML = `No current user found. Set <code>window.CURRENT_USER_ID</code> and reload.`;
             return;
         }
         skipCompetitor = 0;
@@ -194,7 +161,8 @@
     }
 
     async function createAnalysis(type, content) {
-        if (!USER_ID) throw new Error('No current user id');
+        USER_ID = getUserId(); // ensure up-to-date
+        if (!USER_ID) throw new Error('No current user id. Please login.');
         const payload = {
             analysisType: type,
             content: content || 'AI prompt to generate analysis',
@@ -203,7 +171,7 @@
         const url = `${API_BASE_URL}/analytics/analysis`;
         const resp = await fetch(url, {
             method: 'POST',
-            headers: {'Content-Type': 'application/json'},
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
         });
         if (!resp.ok) throw new Error(await resp.text());
@@ -221,8 +189,9 @@
             formMessage.innerText = 'Please select analysis type.';
             return;
         }
+        USER_ID = getUserId(); // ensure up-to-date
         if (!USER_ID) {
-            formMessage.innerText = 'No current user set. Set window.CURRENT_USER_ID or store in localStorage.';
+            formMessage.innerText = 'No current user set. Please try logging in again.';
             return;
         }
         formMessage.innerText = 'Creating analysis...';
@@ -249,14 +218,14 @@
     if (USER_ID) {
         loadInitial();
     } else {
-        setCurrentUserBadge();
+        if (window.updateSharedHeader) window.updateSharedHeader();
     }
 
     // helper to set user from console
     window.__analytics_set_current_user = function (id, persist = false) {
         USER_ID = id;
-        if (persist) localStorage.setItem('CURRENT_USER_ID', id);
-        setCurrentUserBadge();
+        if (persist) localStorage.setItem('userId', id);
+        if (window.updateSharedHeader) window.updateSharedHeader();
         loadInitial();
     };
 })();
