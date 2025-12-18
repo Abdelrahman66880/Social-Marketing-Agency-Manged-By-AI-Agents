@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Schedule - AI Agent</title>
     <link rel="stylesheet" href="../static/css/style.css" />
     <style>
@@ -66,7 +67,8 @@
             margin-top: 12px;
         }
 
-        .btn-edit, .btn-delete {
+        .btn-edit,
+        .btn-delete {
             padding: 6px 12px;
             font-size: 12px;
             border: none;
@@ -233,28 +235,30 @@
         }
     </style>
 </head>
+
 <body class="dashboard-body">
     <!-- Sidebar -->
     <aside class="sidebar">
         <div class="sidebar-header">
             <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
-                <rect x="2" y="2" width="28" height="28" rx="8" fill="#2563EB" opacity="0.1"/>
-                <path d="M16 4V22M16 22L10 16M16 22L22 16" stroke="#2563EB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                <circle cx="16" cy="28" r="1.5" fill="#2563EB"/>
+                <rect x="2" y="2" width="28" height="28" rx="8" fill="#2563EB" opacity="0.1" />
+                <path d="M16 4V22M16 22L10 16M16 22L22 16" stroke="#2563EB" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round" />
+                <circle cx="16" cy="28" r="1.5" fill="#2563EB" />
             </svg>
             <span>AI Agent</span>
         </div>
         <nav class="sidebar-nav">
-            <a href="templates/dashboard.html" class="nav-item">
+            <a href="dashboard.html" class="nav-item">
                 <span class="icon">📊</span><span>Dashboard</span>
             </a>
-            <a href="templates/analytics.html" class="nav-item">
+            <a href="analytics.html" class="nav-item">
                 <span class="icon">📈</span><span>Analytics</span>
             </a>
-            <a href="templates/home.html" class="nav-item">
+            <a href="home.html" class="nav-item">
                 <span class="icon">✍️</span><span>Create Content</span>
             </a>
-            <a href="templates/schedule.html" class="nav-item active">
+            <a href="schedule.html" class="nav-item active">
                 <span class="icon">📅</span><span>Scheduled Posts</span>
             </a>
             <a href="#" class="nav-item">
@@ -278,27 +282,50 @@
         </div>
 
         <div class="dashboard-content" style="padding: 24px;">
-            <!-- Add Item Buttons -->
-            <section class="add-item-section">
-                <div class="card-title">Quick Add</div>
-                <div style="display:flex;gap:12px;flex-wrap:wrap;">
-                    <button id="addPostBtn" class="btn btn-primary">+ Add Post</button>
-                    <button id="addCompetitorBtn" class="btn btn-primary">+ Add Competitor Analysis</button>
-                    <button id="addInteractionBtn" class="btn btn-primary">+ Add Interaction Analysis</button>
-                    <button id="saveScheduleBtn" class="btn btn-secondary" style="margin-left:auto;">💾 Save Schedule</button>
-                </div>
-                <p id="saveMessage" style="margin-top:12px;color:var(--gray-600);font-size:13px;"></p>
-            </section>
+            <div style="display: flex; justify-content: flex-end; margin-bottom: 16px;">
+                <button id="saveScheduleBtn" class="btn btn-secondary">💾 Save Schedule</button>
+            </div>
+            <p id="saveMessage"
+                style="text-align: right; margin-bottom: 12px; color: var(--gray-600); font-size: 13px;"></p>
 
-            <!-- Timeline View -->
-            <section class="timeline-view">
-                <div class="card-title">Schedule Timeline</div>
-                <div id="timelineContainer">
-                    <div class="empty-state">
-                        <p>No scheduled items yet. Click "Quick Add" to create one.</p>
+            <div class="schedule-grid"
+                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px;">
+                <!-- Posts Section -->
+                <section class="timeline-view">
+                    <div class="card-title" style="display:flex; justify-content:space-between; align-items:center;">
+                        <span>📝 Posts</span>
+                        <button id="addPostBtn" class="btn btn-primary btn-sm"
+                            style="padding: 4px 8px; font-size: 12px;">+ Add</button>
                     </div>
-                </div>
-            </section>
+                    <div id="postsList" class="items-list">
+                        <!-- Posts will be rendered here -->
+                    </div>
+                </section>
+
+                <!-- Competitor Analysis Section -->
+                <section class="timeline-view">
+                    <div class="card-title" style="display:flex; justify-content:space-between; align-items:center;">
+                        <span>🔍 Competitor Analysis</span>
+                        <button id="addCompetitorBtn" class="btn btn-primary btn-sm"
+                            style="padding: 4px 8px; font-size: 12px;">+ Add</button>
+                    </div>
+                    <div id="competitorList" class="items-list">
+                        <!-- Competitor Analysis will be rendered here -->
+                    </div>
+                </section>
+
+                <!-- Interaction Analysis Section -->
+                <section class="timeline-view">
+                    <div class="card-title" style="display:flex; justify-content:space-between; align-items:center;">
+                        <span>💬 Interaction Analysis</span>
+                        <button id="addInteractionBtn" class="btn btn-primary btn-sm"
+                            style="padding: 4px 8px; font-size: 12px;">+ Add</button>
+                    </div>
+                    <div id="interactionList" class="items-list">
+                        <!-- Interaction Analysis will be rendered here -->
+                    </div>
+                </section>
+            </div>
         </div>
     </main>
 
@@ -306,7 +333,7 @@
     <div id="itemModal" class="modal">
         <div class="modal-content">
             <button class="modal-close" id="closeModal">&times;</button>
-            
+
             <!-- Tabs -->
             <div class="tabs-section">
                 <button class="tab-btn active" data-tab="post">Post</button>
@@ -324,11 +351,13 @@
                     </div>
                     <div class="form-section">
                         <label>Content (AI Prompt)</label>
-                        <textarea id="postContent" rows="4" placeholder="Enter the prompt for AI to generate the post..." required></textarea>
+                        <textarea id="postContent" rows="4"
+                            placeholder="Enter the prompt for AI to generate the post..." required></textarea>
                     </div>
                     <div class="form-section">
                         <label>Media URLs (comma separated)</label>
-                        <input type="text" id="postMedia" placeholder="https://example.com/img1.jpg, https://example.com/img2.jpg">
+                        <input type="text" id="postMedia"
+                            placeholder="https://example.com/img1.jpg, https://example.com/img2.jpg">
                     </div>
                     <div style="display:flex;gap:12px;">
                         <button type="submit" class="btn btn-primary">Save Post</button>
@@ -347,7 +376,8 @@
                     </div>
                     <div class="form-section">
                         <label>Analysis Focus (AI Prompt)</label>
-                        <textarea id="competitorFocus" rows="4" placeholder="Specify what to analyze about competitors..." required></textarea>
+                        <textarea id="competitorFocus" rows="4"
+                            placeholder="Specify what to analyze about competitors..." required></textarea>
                     </div>
                     <div class="form-section">
                         <label>Keywords (comma separated)</label>
@@ -379,4 +409,5 @@
 
     <script src="../static/js/schedule.js"></script>
 </body>
+
 </html>

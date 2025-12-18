@@ -71,7 +71,7 @@ async def login_for_access_token(
 
     # create token payload
     access_token = create_access_token(data={"sub": str(user.id)})
-    return {"access_token": access_token, "token_type": "bearer"}
+    return {"access_token": access_token, "token_type": "bearer", "user_id": str(user.id)}
 
 @auth_router.get("/me")
 async def read_current_user(user = Depends(get_current_user)):

@@ -132,6 +132,9 @@ async function handleLoginSubmit(e) {
 
         // Store auth data
         localStorage.setItem('accessToken', data.access_token);
+        if (data.user_id) {
+            localStorage.setItem('userId', data.user_id);
+        }
         // We might want to fetch user details to get the ID, but for now token is key
 
         if (rememberMe) {

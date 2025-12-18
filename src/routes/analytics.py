@@ -68,12 +68,9 @@ async def post_recommendations(
     Args:
         req: A Recommendation database schema.
     """
-    try:
-        recs = await recommendation_model.create_recommendation(req)
-        req.id = str(recs)
-        return req
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    recs = await recommendation_model.create_recommendation(req)
+    req.id = str(recs)
+    return req
 
 
 @analytics_router.get(
@@ -98,16 +95,13 @@ async def get_recommendations(
     Returns:
         All recommendations associated with the user ID.
     """
-    try:
-        recs = await recommendation_model.get_by_user_id(user_id=user_id, limit=limit, skip=skip)
-        if not recs:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=ResponseSignal.RECOMMENDATION_NOT_FOUND.value
-            )
-        return recs
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    recs = await recommendation_model.get_by_user_id(user_id=user_id, limit=limit, skip=skip)
+    if not recs:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=ResponseSignal.RECOMMENDATION_NOT_FOUND.value
+        )
+    return recs
 
 
 # -----------------------------------
@@ -128,12 +122,9 @@ async def post_analysis(
     Args:
         req: An Analysis database schema.
     """
-    try:
-        recs = await analysis_model.create_analysis(analysis=req)
-        req.id = str(recs)
-        return req
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    recs = await analysis_model.create_analysis(analysis=req)
+    req.id = str(recs)
+    return req
 
 
 @analytics_router.get(
@@ -158,16 +149,13 @@ async def get_competitor_analysis(
     Returns:
         All competitor analyses associated with the user ID.
     """
-    try:
-        recs = await analysis_model.get_competitor_analysis_by_user_id(user_id=user_id, skip=skip, limit=limit)
-        if not recs:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=ResponseSignal.COMPETITOR_ANALYSIS_NOT_FOUND.value
-            )
-        return recs
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    recs = await analysis_model.get_competitor_analysis_by_user_id(user_id=user_id, skip=skip, limit=limit)
+    if not recs:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=ResponseSignal.COMPETITOR_ANALYSIS_NOT_FOUND.value
+        )
+    return recs
 
 
 @analytics_router.get(
@@ -192,13 +180,10 @@ async def get_interaction_analysis(
     Returns:
         All interaction analyses associated with the user ID.
     """
-    try:
-        recs = await analysis_model.get_interaction_analysis_by_user_id(user_id=user_id, skip=skip, limit=limit)
-        if not recs:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=ResponseSignal.INTERACTION_ANALYSIS_NOT_FOUND.value
-            )
-        return recs
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    recs = await analysis_model.get_interaction_analysis_by_user_id(user_id=user_id, skip=skip, limit=limit)
+    if not recs:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=ResponseSignal.INTERACTION_ANALYSIS_NOT_FOUND.value
+        )
+    return recs

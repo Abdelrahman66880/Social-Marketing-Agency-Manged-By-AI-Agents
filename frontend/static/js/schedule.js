@@ -8,7 +8,7 @@
         return v ? v.pop() : null;
     }
 
-    let USER_ID = window.CURRENT_USER_ID || localStorage.getItem('CURRENT_USER_ID') || getUserIdFromCookie('user_id') || null;
+    let USER_ID = window.CURRENT_USER_ID || localStorage.getItem('userId') || getUserIdFromCookie('user_id') || null;
 
     // State
     let currentSchedule = null;
@@ -16,7 +16,9 @@
     let editingItemType = null; // 'post', 'competitor', 'interaction'
 
     // DOM elements
-    const timelineContainer = document.getElementById('timelineContainer');
+    const postsList = document.getElementById('postsList');
+    const competitorList = document.getElementById('competitorList');
+    const interactionList = document.getElementById('interactionList');
     const itemModal = document.getElementById('itemModal');
     const currentUserBadge = document.getElementById('currentUserBadge');
     const saveMessage = document.getElementById('saveMessage');
@@ -53,7 +55,12 @@
         try {
             const r = await fetch(url);
             if (!r.ok) {
-                if (r.status === 404) return { posts: [], competitor_analysis: [], interaction_analysis_dates: [] };
+                if (r.status === 404) return {
+                    user_id: USER_ID,
+                    posts: [],
+                    competitor_analysis: [],
+                    interaction_analysis_dates: []
+                };
                 throw new Error(`${r.status}: ${await r.text()}`);
             }
             return await r.json();
@@ -90,95 +97,99 @@
         }
     }
 
-    // Render timeline
-    function renderTimeline() {
-        timelineContainer.innerHTML = '';
-        if (!currentSchedule) {
-            timelineContainer.innerHTML = '<div class="empty-state"><p>Failed to load schedule.</p></div>';
-            return;
-        }
+    // Render sections
+    function renderSections() {
+        const lists = {
+            post: postsList,
+            competitor: competitorList,
+            interaction: interactionList
+        };
 
-        const posts = currentSchedule.posts || [];
-        const competitors = currentSchedule.competitor_analysis || [];
-        const interactions = currentSchedule.interaction_analysis_dates || [];
-
-        // Combine and sort by date
-        const allItems = [
-            ...posts.map(p => ({ type: 'post', data: p })),
-            ...competitors.map(c => ({ type: 'competitor', data: c })),
-            ...interactions.map(i => ({ type: 'interaction', data: i }))
-        ];
-
-        allItems.sort((a, b) => new Date(a.data.date) - new Date(b.data.date));
-
-        if (allItems.length === 0) {
-            timelineContainer.innerHTML = '<div class="empty-state"><p>No scheduled items yet. Click "Quick Add" to create one.</p></div>';
-            return;
-        }
-
-        const frag = document.createDocumentFragment();
-
-        allItems.forEach(item => {
-            const card = document.createElement('div');
-            card.className = 'timeline-item';
-
-            const header = document.createElement('div');
-            header.className = 'timeline-item-header';
-
-            const typeSpan = document.createElement('span');
-            typeSpan.className = 'timeline-item-type';
-            const typeLabel = item.type === 'post' ? '📝 Post' :
-                item.type === 'competitor' ? '🔍 Competitor' : '💬 Interaction';
-            typeSpan.innerText = typeLabel;
-
-            const dateSpan = document.createElement('span');
-            dateSpan.className = 'timeline-item-date';
-            dateSpan.innerText = dateToLocalString(item.data.date);
-
-            header.appendChild(typeSpan);
-            header.appendChild(dateSpan);
-
-            const content = document.createElement('div');
-            content.className = 'timeline-item-content';
-
-            if (item.type === 'post') {
-                content.innerHTML = `<strong>Content:</strong> ${item.data.content}`;
-                if (item.data.media_urls && item.data.media_urls.length > 0) {
-                    content.innerHTML += `<br><strong>Media:</strong> ${item.data.media_urls.join(', ')}`;
-                }
-            } else if (item.type === 'competitor') {
-                content.innerHTML = `<strong>Focus:</strong> ${item.data.analysis_focus}`;
-                if (item.data.keywords && item.data.keywords.length > 0) {
-                    content.innerHTML += `<br><strong>Keywords:</strong> ${item.data.keywords.join(', ')}`;
-                }
-            } else {
-                content.innerHTML = `<strong>Interaction Analysis scheduled</strong>`;
-            }
-
-            const actions = document.createElement('div');
-            actions.className = 'timeline-item-actions';
-
-            const editBtn = document.createElement('button');
-            editBtn.className = 'btn-edit';
-            editBtn.innerText = 'Edit';
-            editBtn.addEventListener('click', () => openEditModal(item.type, item.data.id));
-
-            const deleteBtn = document.createElement('button');
-            deleteBtn.className = 'btn-delete';
-            deleteBtn.innerText = 'Delete';
-            deleteBtn.addEventListener('click', () => deleteItem(item.type, item.data.id));
-
-            actions.appendChild(editBtn);
-            actions.appendChild(deleteBtn);
-
-            card.appendChild(header);
-            card.appendChild(content);
-            card.appendChild(actions);
-
-            frag.appendChild(card);
+        // Clear all lists
+        Object.values(lists).forEach(list => {
+            if (list) list.innerHTML = '';
         });
 
-        timelineContainer.appendChild(frag);
+        if (!currentSchedule) {
+            Object.values(lists).forEach(list => {
+                if (list) list.innerHTML = '<div class="empty-state"><p>Error loading content.</p></div>';
+            });
+            return;
+        }
+
+        const items = {
+            post: currentSchedule.posts || [],
+            competitor: currentSchedule.competitor_analysis || [],
+            interaction: currentSchedule.interaction_analysis_dates || []
+        };
+
+        Object.keys(items).forEach(type => {
+            const listEl = lists[type];
+            const data = items[type];
+
+            if (!listEl) return;
+
+            if (data.length === 0) {
+                listEl.innerHTML = `<div class="empty-state" style="padding: 20px 0;"><p>No ${type}s scheduled.</p></div>`;
+                return;
+            }
+
+            // Sort by date
+            const sortedData = [...data].sort((a, b) => new Date(a.date) - new Date(b.date));
+
+            sortedData.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'timeline-item';
+                card.style.margin = '0 0 12px 0';
+                card.style.padding = '12px';
+
+                const header = document.createElement('div');
+                header.className = 'timeline-item-header';
+
+                const dateSpan = document.createElement('span');
+                dateSpan.className = 'timeline-item-date';
+                dateSpan.innerText = dateToLocalString(item.date);
+
+                header.appendChild(dateSpan);
+
+                const content = document.createElement('div');
+                content.className = 'timeline-item-content';
+
+                if (type === 'post') {
+                    content.innerHTML = `<div><strong>Prompt:</strong> ${item.content}</div>`;
+                    if (item.media_urls && item.media_urls.length > 0) {
+                        content.innerHTML += `<div style="font-size:12px; color:var(--gray-500); margin-top:4px;">${item.media_urls.length} media attached</div>`;
+                    }
+                } else if (type === 'competitor') {
+                    content.innerHTML = `<div><strong>Focus:</strong> ${item.analysis_focus}</div>`;
+                } else {
+                    content.innerHTML = `<div style="font-size:14px; color:var(--gray-600);">Interaction Analysis</div>`;
+                }
+
+                const actions = document.createElement('div');
+                actions.className = 'timeline-item-actions';
+                actions.style.marginTop = '8px';
+
+                const editBtn = document.createElement('button');
+                editBtn.className = 'btn-edit';
+                editBtn.innerText = 'Edit';
+                editBtn.addEventListener('click', () => openEditModal(type, item.id));
+
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'btn-delete';
+                deleteBtn.innerText = 'Delete';
+                deleteBtn.addEventListener('click', () => deleteItem(type, item.id));
+
+                actions.appendChild(editBtn);
+                actions.appendChild(deleteBtn);
+
+                card.appendChild(header);
+                card.appendChild(content);
+                card.appendChild(actions);
+
+                listEl.appendChild(card);
+            });
+        });
     }
 
     // Modal management
@@ -248,7 +259,7 @@
             currentSchedule.interaction_analysis_dates = currentSchedule.interaction_analysis_dates.filter(i => i.id !== id);
         }
 
-        renderTimeline();
+        renderSections();
     }
 
     // Form submissions
@@ -277,7 +288,7 @@
             currentSchedule.posts.push(newPost);
         }
 
-        renderTimeline();
+        renderSections();
         closeModal();
     });
 
@@ -306,7 +317,7 @@
             currentSchedule.competitor_analysis.push(newCompetitor);
         }
 
-        renderTimeline();
+        renderSections();
         closeModal();
     });
 
@@ -331,7 +342,7 @@
             currentSchedule.interaction_analysis_dates.push(newInteraction);
         }
 
-        renderTimeline();
+        renderSections();
         closeModal();
     });
 
@@ -371,13 +382,16 @@
     // Initial load
     async function init() {
         if (!USER_ID) {
-            timelineContainer.innerHTML = '<div class="empty-state"><p>No user set. Set window.CURRENT_USER_ID and reload.</p></div>';
+            const msg = '<div class="empty-state"><p>No user set. Set window.CURRENT_USER_ID and reload.</p></div>';
+            if (postsList) postsList.innerHTML = msg;
+            if (competitorList) competitorList.innerHTML = msg;
+            if (interactionList) interactionList.innerHTML = msg;
             return;
         }
         const schedule = await fetchSchedule();
         if (schedule) {
             currentSchedule = schedule;
-            renderTimeline();
+            renderSections();
         }
     }
 
@@ -386,7 +400,7 @@
     // Helper
     window.__schedule_set_user = function (id) {
         USER_ID = id;
-        localStorage.setItem('CURRENT_USER_ID', id);
+        localStorage.setItem('userId', id);
         setCurrentUserBadge();
         init();
     };
