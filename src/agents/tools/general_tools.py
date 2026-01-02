@@ -254,3 +254,40 @@ def send_customer_response(page_id: str, recipient_id: str, message: str) -> str
     if "recipient_id" in response:
         return "SUCCESS: Message sent."
     return f"FAILED to send message. Error: {response}"
+
+@tool
+def save_market_analysis(user_id: str, topic: str, content: str) -> str:
+    """
+    Saves a research/analysis report to the database for future reference.
+    """
+    endpoint = "/analytics/analysis"
+    payload = {
+        "user_id": user_id,
+        "type": "COMPETITOR", # Could be dynamic
+        "content": content,
+        "metrics": {"topic": topic}
+    }
+    response = _make_api_call("POST", endpoint, data=payload)
+    
+    if "id" in response:
+        return "Analysis saved to memory."
+    return "Failed to save analysis."
+
+@tool
+def save_strategic_recommendation(user_id: str, title: str, content: str) -> str:
+    """
+    Saves a formal Strategic Recommendation to the database.
+    Use this when you want to suggest actionable steps to the user (e.g., "Post more videos").
+    """
+    endpoint = "/analytics/recommendations"
+    payload = {
+        "user_id": user_id,
+        "title": title,
+        "content": content
+    }
+    response = _make_api_call("POST", endpoint, data=payload)
+    
+    if "id" in response:
+        return f"Recommendation '{title}' saved."
+    return "Failed to save recommendation."
+
