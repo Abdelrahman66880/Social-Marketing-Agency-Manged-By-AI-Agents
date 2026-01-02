@@ -7,6 +7,7 @@ class Settings(BaseSettings):
     APP_NAME: str
     APP_VERSION: str
     MONGODB_URL: str
+    API_BASE_URL: str
     MONGODB_DATABASE: str
     GRAPH_API_VERSION: str
     FACEBOOK_APP_ID: str
@@ -20,5 +21,17 @@ class Settings(BaseSettings):
     class Config:
         env_file = os.path.join(BASE_DIR, ".env")  # src/.env
 
-def get_Settings():
+def get_Settings() -> Settings:
+    """
+    Creates and returns an instance of the Settings class, loading configuration from environment variables.
+
+    Args:
+        None
+
+    Returns:
+        Settings: An instance of the Settings class containing validated application configuration.
+
+    Raises:
+        pydantic.ValidationError: If required environment variables are missing or invalid.
+    """
     return Settings()
