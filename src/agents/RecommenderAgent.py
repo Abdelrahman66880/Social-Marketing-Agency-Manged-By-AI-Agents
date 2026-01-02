@@ -1,1 +1,0 @@
-# Offers & sponsorship suggestions

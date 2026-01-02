@@ -1,1 +1,0 @@
-# Customer & competitor analysis
